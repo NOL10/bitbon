@@ -134,7 +134,9 @@ export default function Home() {
     setManualPrice("");
   };
 
-  const priceGlowClass = shouldPriceGlow(btcData.currentPrice) ? "animate-pulse text-[#ffcc33]" : "";
+  const priceGlowClass = shouldPriceGlow(btcData.currentPrice) 
+    ? "animate-pulse text-[#ffcc33] shadow-glow" 
+    : "";
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center p-0 m-0 bg-black overflow-hidden">

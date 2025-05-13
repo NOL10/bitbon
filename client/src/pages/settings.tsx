@@ -64,21 +64,31 @@ export default function Settings() {
   };
 
   const handleResetBonsai = async () => {
-    // Save default settings
-    await saveSettings({
-      positiveThresholds: [10, 20, 30],
-      negativeThresholds: [-10, -20, -30],
-      useAverageBuyPrice: true,
-      anchorPrice: null
-    });
-    
-    // Clear logs and reset price data (by refreshing the page)
-    window.location.reload();
-    
-    toast({
-      title: "Bonsai Reset",
-      description: "Your bonsai plant has been reset to its initial state.",
-    });
+    if (confirm("Are you sure you want to reset your bonsai? This will delete all your logs and reset your settings.")) {
+      try {
+        // Save default settings
+        await saveSettings({
+          positiveThresholds: [10, 20, 30],
+          negativeThresholds: [-10, -20, -30],
+          useAverageBuyPrice: true,
+          anchorPrice: null
+        });
+        
+        // Clear logs and reset price data (by refreshing the page)
+        window.location.href = "/";
+        
+        toast({
+          title: "Bonsai Reset",
+          description: "Your bonsai plant has been reset to its initial state.",
+        });
+      } catch (error) {
+        toast({
+          title: "Reset Failed",
+          description: "There was a problem resetting your bonsai.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const isLoading = isLoadingSettings || isLoadingLogs;

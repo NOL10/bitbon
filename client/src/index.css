@@ -170,4 +170,9 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Press Start 2P', monospace;
   }
+  
+  /* Glow effect for price thresholds */
+  .shadow-glow {
+    text-shadow: 0 0 5px #ffcc33, 0 0 10px #ffcc33, 0 0 15px #ffcc33;
+  }
 }
