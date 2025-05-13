@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { GrowthState } from "./types";
+import { GrowthState, GrowthFrequency } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,12 +33,32 @@ export function calculateGrowthPercent(
   return ((currentPrice - anchorPrice) / anchorPrice) * 100;
 }
 
+// Calculate the adjusted growth percentage based on the chosen frequency
+export function calculateAdjustedGrowthPercent(
+  percentChange: number,
+  growthFrequency: GrowthFrequency = "day"
+): number {
+  // Apply frequency multipliers to adjust growth rate based on selected timeframe
+  const multipliers = {
+    day: 1,
+    week: 0.7,   // Slower growth over a week
+    month: 0.5,  // Even slower over a month
+    year: 0.25   // Slowest over a year
+  };
+  
+  return percentChange * multipliers[growthFrequency];
+}
+
 // Determine the growth state based on percentage change and thresholds
 export function calculateGrowthStage(
   percentChange: number,
   positiveThresholds: number[] = [10, 20, 30],
-  negativeThresholds: number[] = [-10, -20, -30]
+  negativeThresholds: number[] = [-10, -20, -30],
+  growthFrequency: GrowthFrequency = "day"
 ): GrowthState {
+  // Adjust growth percentage based on frequency
+  const adjustedPercent = calculateAdjustedGrowthPercent(percentChange, growthFrequency);
+  
   // Sort thresholds in ascending order
   const sortedPositive = [...positiveThresholds].sort((a, b) => a - b);
   const sortedNegative = [...negativeThresholds].sort((a, b) => a - b);
@@ -48,30 +68,30 @@ export function calculateGrowthStage(
   const lowestNegative = sortedNegative[0];
   
   // All time high case
-  if (percentChange > highestPositive) {
+  if (adjustedPercent > highestPositive) {
     return "ath";
   }
   
   // All time low case
-  if (percentChange < lowestNegative) {
+  if (adjustedPercent < lowestNegative) {
     return "atl";
   }
   
   // Positive cases
-  if (percentChange >= sortedPositive[2]) {
+  if (adjustedPercent >= sortedPositive[2]) {
     return "positive-30";
-  } else if (percentChange >= sortedPositive[1]) {
+  } else if (adjustedPercent >= sortedPositive[1]) {
     return "positive-20";
-  } else if (percentChange >= sortedPositive[0]) {
+  } else if (adjustedPercent >= sortedPositive[0]) {
     return "positive-10";
   }
   
   // Negative cases
-  if (percentChange <= sortedNegative[0]) {
+  if (adjustedPercent <= sortedNegative[0]) {
     return "negative-30";
-  } else if (percentChange <= sortedNegative[1]) {
+  } else if (adjustedPercent <= sortedNegative[1]) {
     return "negative-20";
-  } else if (percentChange <= sortedNegative[2]) {
+  } else if (adjustedPercent <= sortedNegative[2]) {
     return "negative-10";
   }
   

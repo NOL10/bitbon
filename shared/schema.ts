@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, real, array } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -6,8 +6,8 @@ import { z } from "zod";
 export const bonsaiSettings = pgTable("bonsai_settings", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull(),
-  positiveThresholds: array("positive_thresholds").notNull().$type<number[]>(),
-  negativeThresholds: array("negative_thresholds").notNull().$type<number[]>(),
+  positiveThresholds: jsonb("positive_thresholds").notNull().$type<number[]>(),
+  negativeThresholds: jsonb("negative_thresholds").notNull().$type<number[]>(),
   anchorPrice: real("anchor_price"),
   useAverageBuyPrice: boolean("use_average_buy_price").notNull().default(true),
   growthFrequency: text("growth_frequency").notNull().default("day"),

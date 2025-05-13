@@ -38,12 +38,13 @@ export default function Settings() {
         positiveThresholds,
         negativeThresholds,
         useAverageBuyPrice,
-        anchorPrice: useAverageBuyPrice ? null : anchorPrice
+        anchorPrice: useAverageBuyPrice ? null : anchorPrice,
+        growthFrequency
       });
       
       toast({
         title: "Settings Saved",
-        description: "Your bonsai growth thresholds have been updated.",
+        description: "Your bonsai growth settings have been updated.",
       });
     } catch (error) {
       toast({
@@ -74,10 +75,11 @@ export default function Settings() {
           positiveThresholds: [10, 20, 30],
           negativeThresholds: [-10, -20, -30],
           useAverageBuyPrice: true,
-          anchorPrice: null
+          anchorPrice: null,
+          growthFrequency: "day"
         });
         
-        // Clear logs and reset price data (by refreshing the page)
+        // Clear logs and reset price data by refreshing the page
         window.location.href = "/";
         
         toast({
@@ -184,6 +186,21 @@ export default function Settings() {
                 <div className="absolute top-0 left-0 w-full h-full bg-[#051405] border-2 border-[#22ff33] p-4 z-20 overflow-y-auto">
                   <h2 className="text-[24px] font-['VT323'] mb-6 text-center">ADVANCED SETTINGS</h2>
                   
+                  {/* Growth Frequency Setting */}
+                  <div className="mb-6">
+                    <h3 className="text-[18px] font-['VT323'] mb-2">GROWTH FREQUENCY</h3>
+                    <select 
+                      className="w-full border border-[#22ff33] bg-[#051405] text-[#22ff33] font-['VT323'] py-2 px-2 mb-4"
+                      value={growthFrequency}
+                      onChange={(e) => setGrowthFrequency(e.target.value as GrowthFrequency)}
+                    >
+                      <option value="day">DAY</option>
+                      <option value="week">WEEK</option>
+                      <option value="month">MONTH</option>
+                      <option value="year">YEAR</option>
+                    </select>
+                  </div>
+                  
                   {/* Positive Thresholds */}
                   <div className="mb-6">
                     <h3 className="text-[18px] font-['VT323'] mb-2">POSITIVE THRESHOLDS (%)</h3>
@@ -214,12 +231,6 @@ export default function Settings() {
                         />
                       ))}
                     </div>
-                  </div>
-                  
-                  {/* Coming Soon Message */}
-                  <div className="mb-6 text-center">
-                    <h3 className="text-[18px] font-['VT323'] mb-4">FEATURES COMING SOON</h3>
-                    <p className="font-['VT323'] text-[16px]">Advanced settings will be available in the next update.</p>
                   </div>
                   
                   <div className="flex space-x-4 mt-8">
