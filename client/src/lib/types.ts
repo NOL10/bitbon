@@ -17,6 +17,9 @@ export type GrowthState =
   | "negative-30" 
   | "atl"; // All-Time Low (below lowest negative threshold)
 
+// Growth frequency options
+export type GrowthFrequency = "day" | "week" | "month" | "year";
+
 // Settings types
 export interface BonsaiSettings {
   id?: number;
@@ -25,6 +28,7 @@ export interface BonsaiSettings {
   negativeThresholds: number[];
   useAverageBuyPrice: boolean;
   anchorPrice: number | null;
+  growthFrequency: GrowthFrequency;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -34,6 +38,7 @@ export interface SaveSettingsParams {
   negativeThresholds: number[];
   useAverageBuyPrice: boolean;
   anchorPrice: number | null;
+  growthFrequency: GrowthFrequency;
 }
 
 // Log types

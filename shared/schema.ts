@@ -10,6 +10,7 @@ export const bonsaiSettings = pgTable("bonsai_settings", {
   negativeThresholds: array("negative_thresholds").notNull().$type<number[]>(),
   anchorPrice: real("anchor_price"),
   useAverageBuyPrice: boolean("use_average_buy_price").notNull().default(true),
+  growthFrequency: text("growth_frequency").notNull().default("day"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -30,6 +31,7 @@ export const insertBonsaiSettingsSchema = createInsertSchema(bonsaiSettings).pic
   negativeThresholds: true,
   anchorPrice: true,
   useAverageBuyPrice: true,
+  growthFrequency: true,
 });
 
 export const insertBonsaiLogSchema = createInsertSchema(bonsaiLogs).pick({

@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBonsaiStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils";
 import { calculateAverageBuyPrice } from "@/lib/utils";
+import { GrowthFrequency } from "@/lib/types";
 
 export default function Settings() {
   const { toast } = useToast();
@@ -13,6 +14,7 @@ export default function Settings() {
   const [negativeThresholds, setNegativeThresholds] = useState<number[]>([-10, -20, -30]);
   const [useAverageBuyPrice, setUseAverageBuyPrice] = useState(true);
   const [anchorPrice, setAnchorPrice] = useState<number | null>(null);
+  const [growthFrequency, setGrowthFrequency] = useState<GrowthFrequency>("day");
   const [showWateringLog, setShowWateringLog] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -26,6 +28,7 @@ export default function Settings() {
       setNegativeThresholds(settings.negativeThresholds);
       setUseAverageBuyPrice(settings.useAverageBuyPrice);
       setAnchorPrice(settings.anchorPrice);
+      setGrowthFrequency(settings.growthFrequency || "day");
     }
   }, [settings, isLoadingSettings]);
 
