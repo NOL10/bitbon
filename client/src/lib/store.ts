@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BtcData, BonsaiSettings, BonsaiLog, UpdateBtcDataParams, SaveSettingsParams, AddLogParams } from "./types";
-import { fetchBonsaiSettings, saveBonsaiSettings, fetchBonsaiLogs, addBonsaiLog } from "./api";
+import { fetchSettings, saveSettings, fetchLogs, addLog } from "./api";
 import { calculateAverageBuyPrice } from "./utils";
 
 // Define initial state
@@ -33,7 +33,8 @@ type BonsaiAction =
   | { type: 'SET_LOGS'; payload: BonsaiLog[] }
   | { type: 'ADD_LOG'; payload: BonsaiLog }
   | { type: 'SET_LOADING_SETTINGS'; payload: boolean }
-  | { type: 'SET_LOADING_LOGS'; payload: boolean };
+  | { type: 'SET_LOADING_LOGS'; payload: boolean }
+  | { type: 'RESET_STATE' };
 
 // Create reducer
 function bonsaiReducer(state: BonsaiState, action: BonsaiAction): BonsaiState {
@@ -57,11 +58,22 @@ function bonsaiReducer(state: BonsaiState, action: BonsaiAction): BonsaiState {
         ...state,
         logs: action.payload
       };
-    case 'ADD_LOG':
+    case 'ADD_LOG': {
+      const newLogs = state.logs ? [action.payload, ...state.logs] : [action.payload];
+      let newAnchorPrice = state.btcData.anchorPrice;
+      // If this is a water (buy) log and not using average, update anchor price
+      if (action.payload.type === 'water' && state.settings && !state.settings.useAverageBuyPrice) {
+        newAnchorPrice = action.payload.price;
+      }
       return {
         ...state,
-        logs: state.logs ? [action.payload, ...state.logs] : [action.payload]
+        logs: newLogs,
+        btcData: {
+          ...state.btcData,
+          anchorPrice: newAnchorPrice
+        }
       };
+    }
     case 'SET_LOADING_SETTINGS':
       return {
         ...state,
@@ -71,6 +83,16 @@ function bonsaiReducer(state: BonsaiState, action: BonsaiAction): BonsaiState {
       return {
         ...state,
         isLoadingLogs: action.payload
+      };
+    case 'RESET_STATE':
+      return {
+        ...state,
+        settings: null,
+        logs: null,
+        btcData: {
+          ...initialState.btcData,
+          currentPrice: state.btcData.currentPrice // Keep current price
+        }
       };
     default:
       return state;
@@ -82,6 +104,7 @@ interface BonsaiContextType extends BonsaiState {
   updateBtcData: (data: UpdateBtcDataParams) => void;
   saveSettings: (settings: SaveSettingsParams) => Promise<BonsaiSettings>;
   addLog: (log: AddLogParams) => Promise<BonsaiLog>;
+  resetState: () => void;
 }
 
 const BonsaiContext = createContext<BonsaiContextType | undefined>(undefined);
@@ -94,13 +117,13 @@ export function BonsaiProvider({ children }: { children: ReactNode }) {
   // Query for fetching settings
   const { data: settingsData, isLoading: isLoadingSettingsData } = useQuery({
     queryKey: ['/api/bonsai/settings'],
-    queryFn: fetchBonsaiSettings
+    queryFn: fetchSettings
   });
 
   // Query for fetching logs
   const { data: logsData, isLoading: isLoadingLogsData } = useQuery({
     queryKey: ['/api/bonsai/logs'],
-    queryFn: fetchBonsaiLogs
+    queryFn: fetchLogs
   });
 
   // Set loading states
@@ -114,6 +137,7 @@ export function BonsaiProvider({ children }: { children: ReactNode }) {
 
   // Update settings when data is fetched
   useEffect(() => {
+    console.log('settingsData from API:', settingsData);
     if (settingsData) {
       dispatch({ type: 'SET_SETTINGS', payload: settingsData });
     }
@@ -121,6 +145,7 @@ export function BonsaiProvider({ children }: { children: ReactNode }) {
 
   // Update logs when data is fetched
   useEffect(() => {
+    console.log('logsData from API:', logsData);
     if (logsData) {
       dispatch({ type: 'SET_LOGS', payload: logsData });
     }
@@ -157,18 +182,18 @@ export function BonsaiProvider({ children }: { children: ReactNode }) {
   }, [state.settings, state.logs, state.btcData.previousClose]);
 
   // Mutations
-  const saveSettingsMutation = useMutation({
-    mutationFn: saveBonsaiSettings,
+  const saveSettingsMutation = useMutation<BonsaiSettings, unknown, SaveSettingsParams>({
+    mutationFn: saveSettings,
     onSuccess: (data) => {
-      dispatch({ type: 'SET_SETTINGS', payload: data });
+      dispatch({ type: 'SET_SETTINGS', payload: data as BonsaiSettings });
       queryClient.invalidateQueries({ queryKey: ['/api/bonsai/settings'] });
     }
   });
 
-  const addLogMutation = useMutation({
-    mutationFn: addBonsaiLog,
+  const addLogMutation = useMutation<BonsaiLog, unknown, AddLogParams>({
+    mutationFn: addLog,
     onSuccess: (data) => {
-      dispatch({ type: 'ADD_LOG', payload: data });
+      dispatch({ type: 'ADD_LOG', payload: data as BonsaiLog });
       queryClient.invalidateQueries({ queryKey: ['/api/bonsai/logs'] });
     }
   });
@@ -178,21 +203,26 @@ export function BonsaiProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'UPDATE_BTC_DATA', payload: data });
   }, []);
 
-  const saveSettings = useCallback(async (settings: SaveSettingsParams) => {
+  const saveSettingsAction = useCallback(async (settings: SaveSettingsParams) => {
     return await saveSettingsMutation.mutateAsync(settings);
   }, [saveSettingsMutation]);
 
-  const addLog = useCallback(async (log: AddLogParams) => {
+  const addLogAction = useCallback(async (log: AddLogParams) => {
     return await addLogMutation.mutateAsync(log);
   }, [addLogMutation]);
+
+  const resetState = useCallback(() => {
+    dispatch({ type: 'RESET_STATE' });
+  }, []);
 
   // Create context value
   const contextValue = useMemo(() => ({
     ...state,
     updateBtcData,
-    saveSettings,
-    addLog
-  }), [state, updateBtcData, saveSettings, addLog]);
+    saveSettings: saveSettingsAction,
+    addLog: addLogAction,
+    resetState
+  }), [state, updateBtcData, saveSettingsAction, addLogAction, resetState]);
 
   return React.createElement(BonsaiContext.Provider, { value: contextValue }, children);
 }

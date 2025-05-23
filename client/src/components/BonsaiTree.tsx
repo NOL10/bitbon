@@ -1,20 +1,46 @@
+import React, { useEffect, useState } from 'react';
 import { GrowthState } from "@/lib/types";
 
-interface BonsaiTreeProps {
+export interface BonsaiTreeProps {
   growthState: GrowthState;
   percentChange: number;
 }
 
-export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
+export const BonsaiTree: React.FC<BonsaiTreeProps> = ({ growthState, percentChange }) => {
+  const [currentState, setCurrentState] = useState<GrowthState>(growthState);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isGlowing, setIsGlowing] = useState(false);
+
+  useEffect(() => {
+    if (currentState !== growthState) {
+      setIsTransitioning(true);
+      setIsGlowing(true);
+      const timer = setTimeout(() => {
+        setCurrentState(growthState);
+        setIsTransitioning(false);
+      }, 500); // 500ms transition
+      const glowTimer = setTimeout(() => {
+        setIsGlowing(false);
+      }, 1000); // 1s glow effect
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(glowTimer);
+      };
+    }
+  }, [growthState]);
+
   // Render the appropriate bonsai based on growth state
   const renderBonsai = () => {
-    switch (growthState) {
+    const transitionClass = isTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100';
+    const glowClass = isGlowing ? 'filter drop-shadow-[0_0_15px_#22ff33]' : '';
+    
+    switch (currentState) {
       case "ath":
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-64 relative flex items-center justify-center ${glowClass}`}>
               {/* All time high tree - with fruits */}
-              <svg width="100" height="110" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="140" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
                 {/* Pot base */}
                 <rect x="30" y="90" width="40" height="15" fill="#1f5d1f" />
                 {/* Pot top - wider than base */}
@@ -56,34 +82,41 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 <circle cx="40" cy="25" r="6" fill="#2e8c2e" />
                 <circle cx="60" cy="25" r="6" fill="#2e8c2e" />
                 
-                {/* Fruits (orange circles) */}
+                {/* Fruits (orange circles) with enhanced animations */}
                 <circle cx="30" cy="50" r="4" fill="#ffa500">
                   <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="4;4.5;4" dur="2s" repeatCount="indefinite" />
                 </circle>
                 <circle cx="65" cy="30" r="4" fill="#ffa500">
                   <animate attributeName="opacity" values="0.7;1;0.7" dur="1.8s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="4;4.5;4" dur="1.8s" repeatCount="indefinite" />
                 </circle>
                 <circle cx="40" cy="20" r="4" fill="#ffa500">
                   <animate attributeName="opacity" values="0.7;1;0.7" dur="2.2s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="4;4.5;4" dur="2.2s" repeatCount="indefinite" />
                 </circle>
                 <circle cx="70" cy="45" r="4" fill="#ffa500">
                   <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="4;4.5;4" dur="1.5s" repeatCount="indefinite" />
                 </circle>
                 <circle cx="58" cy="18" r="4" fill="#ffa500">
                   <animate attributeName="opacity" values="0.7;1;0.7" dur="2.4s" repeatCount="indefinite" />
+                  <animate attributeName="r" values="4;4.5;4" dur="2.4s" repeatCount="indefinite" />
                 </circle>
               </svg>
             </div>
-            <div className="animate-pulse text-[18px] text-[#22ff33] font-['VT323'] mt-2">ALL TIME HIGH</div>
+            <div className={`text-[18px] text-[#22ff33] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow' : 'scale-100'}`}>
+              ALL TIME HIGH
+            </div>
           </div>
         );
       
       case "atl":
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-32 relative flex items-center justify-center ${glowClass}`}>
               {/* All time low - cracked pot */}
-              <svg width="100" height="50" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="70" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
                 {/* Cracked pot */}
                 <g>
                   {/* Pot base - with crack */}
@@ -111,16 +144,18 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 </g>
               </svg>
             </div>
-            <div className="animate-pulse text-[18px] text-[#22ff33] font-['VT323'] mt-2">ALL TIME LOW</div>
+            <div className={`text-[18px] text-[#a82e2e] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow-red' : 'scale-100'}`}>
+              ALL TIME LOW
+            </div>
           </div>
         );
         
       case "positive-10":
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-48 relative flex items-center justify-center ${glowClass}`}>
               {/* 10% positive growth */}
-              <svg width="100" height="80" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="100" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
                 {/* Pot base */}
                 <rect x="30" y="60" width="40" height="15" fill="#1f5d1f" />
                 {/* Pot top - wider than base */}
@@ -137,22 +172,30 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 {/* 10% Bonsai Stem */}
                 <rect x="49" y="25" width="2" height="25" fill="#2e8c2e" />
                 
-                {/* Small leaves */}
-                <circle cx="50" cy="20" r="7" fill="#2e8c2e" />
-                <circle cx="45" cy="22" r="5" fill="#2e8c2e" />
-                <circle cx="55" cy="22" r="5" fill="#2e8c2e" />
+                {/* Small leaves with animation */}
+                <circle cx="50" cy="20" r="7" fill="#2e8c2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="45" cy="22" r="5" fill="#2e8c2e">
+                  <animate attributeName="r" values="5;5.5;5" dur="1.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="55" cy="22" r="5" fill="#2e8c2e">
+                  <animate attributeName="r" values="5;5.5;5" dur="2.2s" repeatCount="indefinite" />
+                </circle>
               </svg>
             </div>
-            <div className="text-[18px] text-[#22ff33] font-['VT323'] mt-2">+10%</div>
+            <div className={`text-[18px] text-[#22ff33] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow' : 'scale-100'}`}>
+              +10%
+            </div>
           </div>
         );
       
       case "positive-20":
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-56 relative flex items-center justify-center ${glowClass}`}>
               {/* 20% positive growth */}
-              <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 {/* Pot base */}
                 <rect x="30" y="80" width="40" height="15" fill="#1f5d1f" />
                 {/* Pot top - wider than base */}
@@ -177,24 +220,36 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 <rect x="51" y="45" width="14" height="2" fill="#2e8c2e" />
                 <rect x="63" y="45" width="2" height="8" fill="#2e8c2e" />
                 
-                {/* Medium leaves */}
-                <circle cx="50" cy="25" r="10" fill="#2e8c2e" />
-                <circle cx="35" cy="45" r="7" fill="#2e8c2e" />
-                <circle cx="65" cy="40" r="7" fill="#2e8c2e" />
-                <circle cx="40" cy="30" r="6" fill="#2e8c2e" />
-                <circle cx="60" cy="30" r="6" fill="#2e8c2e" />
+                {/* Medium leaves with animation */}
+                <circle cx="50" cy="25" r="10" fill="#2e8c2e">
+                  <animate attributeName="r" values="10;10.5;10" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="35" cy="45" r="7" fill="#2e8c2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="1.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="65" cy="40" r="7" fill="#2e8c2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="2.2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="40" cy="30" r="6" fill="#2e8c2e">
+                  <animate attributeName="r" values="6;6.5;6" dur="1.9s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="60" cy="30" r="6" fill="#2e8c2e">
+                  <animate attributeName="r" values="6;6.5;6" dur="2.1s" repeatCount="indefinite" />
+                </circle>
               </svg>
             </div>
-            <div className="text-[18px] text-[#22ff33] font-['VT323'] mt-2">+20%</div>
+            <div className={`text-[18px] text-[#22ff33] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow' : 'scale-100'}`}>
+              +20%
+            </div>
           </div>
         );
       
       case "positive-30":
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-64 relative flex items-center justify-center ${glowClass}`}>
               {/* 30% positive growth */}
-              <svg width="100" height="110" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="140" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
                 {/* Pot base */}
                 <rect x="30" y="90" width="40" height="15" fill="#1f5d1f" />
                 {/* Pot top - wider than base */}
@@ -227,26 +282,42 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 <rect x="51" y="40" width="14" height="2" fill="#2e8c2e" />
                 <rect x="63" y="40" width="2" height="8" fill="#2e8c2e" />
                 
-                {/* Large leaves */}
-                <circle cx="50" cy="20" r="12" fill="#2e8c2e" />
-                <circle cx="30" cy="55" r="8" fill="#2e8c2e" />
-                <circle cx="70" cy="50" r="8" fill="#2e8c2e" />
-                <circle cx="35" cy="40" r="7" fill="#2e8c2e" />
-                <circle cx="65" cy="35" r="7" fill="#2e8c2e" />
-                <circle cx="40" cy="25" r="6" fill="#2e8c2e" />
-                <circle cx="60" cy="25" r="6" fill="#2e8c2e" />
+                {/* Large leaves with animation */}
+                <circle cx="50" cy="20" r="12" fill="#2e8c2e">
+                  <animate attributeName="r" values="12;12.5;12" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="30" cy="55" r="8" fill="#2e8c2e">
+                  <animate attributeName="r" values="8;8.5;8" dur="1.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="70" cy="50" r="8" fill="#2e8c2e">
+                  <animate attributeName="r" values="8;8.5;8" dur="2.2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="35" cy="40" r="7" fill="#2e8c2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="1.9s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="65" cy="35" r="7" fill="#2e8c2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="2.1s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="40" cy="25" r="6" fill="#2e8c2e">
+                  <animate attributeName="r" values="6;6.5;6" dur="1.7s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="60" cy="25" r="6" fill="#2e8c2e">
+                  <animate attributeName="r" values="6;6.5;6" dur="2.3s" repeatCount="indefinite" />
+                </circle>
               </svg>
             </div>
-            <div className="text-[18px] text-[#22ff33] font-['VT323'] mt-2">+30%</div>
+            <div className={`text-[18px] text-[#22ff33] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow' : 'scale-100'}`}>
+              +30%
+            </div>
           </div>
         );
         
       case "negative-10":
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-48 relative flex items-center justify-center ${glowClass}`}>
               {/* 10% negative growth */}
-              <svg width="100" height="80" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="100" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
                 {/* Pot base */}
                 <rect x="30" y="60" width="40" height="15" fill="#501010" />
                 {/* Pot top - wider than base */}
@@ -263,22 +334,30 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 {/* 10% Negative Bonsai Stem */}
                 <rect x="49" y="25" width="2" height="25" fill="#a82e2e" />
                 
-                {/* Small red leaves */}
-                <circle cx="50" cy="20" r="7" fill="#a82e2e" />
-                <circle cx="45" cy="22" r="5" fill="#a82e2e" />
-                <circle cx="55" cy="22" r="5" fill="#a82e2e" />
+                {/* Small red leaves with animation */}
+                <circle cx="50" cy="20" r="7" fill="#a82e2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="45" cy="22" r="5" fill="#a82e2e">
+                  <animate attributeName="r" values="5;5.5;5" dur="1.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="55" cy="22" r="5" fill="#a82e2e">
+                  <animate attributeName="r" values="5;5.5;5" dur="2.2s" repeatCount="indefinite" />
+                </circle>
               </svg>
             </div>
-            <div className="text-[18px] text-[#a82e2e] font-['VT323'] mt-2">-10%</div>
+            <div className={`text-[18px] text-[#a82e2e] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow-red' : 'scale-100'}`}>
+              -10%
+            </div>
           </div>
         );
         
       case "negative-20":
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-56 relative flex items-center justify-center ${glowClass}`}>
               {/* 20% negative growth */}
-              <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 {/* Pot base */}
                 <rect x="30" y="80" width="40" height="15" fill="#501010" />
                 {/* Pot top - wider than base */}
@@ -303,24 +382,36 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 <rect x="51" y="45" width="14" height="2" fill="#a82e2e" />
                 <rect x="63" y="45" width="2" height="8" fill="#a82e2e" />
                 
-                {/* Medium red leaves */}
-                <circle cx="50" cy="25" r="10" fill="#a82e2e" />
-                <circle cx="35" cy="45" r="7" fill="#a82e2e" />
-                <circle cx="65" cy="40" r="7" fill="#a82e2e" />
-                <circle cx="40" cy="30" r="6" fill="#a82e2e" />
-                <circle cx="60" cy="30" r="6" fill="#a82e2e" />
+                {/* Medium red leaves with animation */}
+                <circle cx="50" cy="25" r="10" fill="#a82e2e">
+                  <animate attributeName="r" values="10;10.5;10" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="35" cy="45" r="7" fill="#a82e2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="1.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="65" cy="40" r="7" fill="#a82e2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="2.2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="40" cy="30" r="6" fill="#a82e2e">
+                  <animate attributeName="r" values="6;6.5;6" dur="1.9s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="60" cy="30" r="6" fill="#a82e2e">
+                  <animate attributeName="r" values="6;6.5;6" dur="2.1s" repeatCount="indefinite" />
+                </circle>
               </svg>
             </div>
-            <div className="text-[18px] text-[#a82e2e] font-['VT323'] mt-2">-20%</div>
+            <div className={`text-[18px] text-[#a82e2e] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow-red' : 'scale-100'}`}>
+              -20%
+            </div>
           </div>
         );
         
       case "negative-30":
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-64 relative flex items-center justify-center ${glowClass}`}>
               {/* 30% negative growth */}
-              <svg width="100" height="110" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="140" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
                 {/* Pot base */}
                 <rect x="30" y="90" width="40" height="15" fill="#501010" />
                 {/* Pot top - wider than base */}
@@ -353,17 +444,33 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 <rect x="51" y="40" width="14" height="2" fill="#a82e2e" />
                 <rect x="63" y="40" width="2" height="8" fill="#a82e2e" />
                 
-                {/* Large red leaves */}
-                <circle cx="50" cy="20" r="12" fill="#a82e2e" />
-                <circle cx="30" cy="55" r="8" fill="#a82e2e" />
-                <circle cx="70" cy="50" r="8" fill="#a82e2e" />
-                <circle cx="35" cy="40" r="7" fill="#a82e2e" />
-                <circle cx="65" cy="35" r="7" fill="#a82e2e" />
-                <circle cx="40" cy="25" r="6" fill="#a82e2e" />
-                <circle cx="60" cy="25" r="6" fill="#a82e2e" />
+                {/* Large red leaves with animation */}
+                <circle cx="50" cy="20" r="12" fill="#a82e2e">
+                  <animate attributeName="r" values="12;12.5;12" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="30" cy="55" r="8" fill="#a82e2e">
+                  <animate attributeName="r" values="8;8.5;8" dur="1.8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="70" cy="50" r="8" fill="#a82e2e">
+                  <animate attributeName="r" values="8;8.5;8" dur="2.2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="35" cy="40" r="7" fill="#a82e2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="1.9s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="65" cy="35" r="7" fill="#a82e2e">
+                  <animate attributeName="r" values="7;7.5;7" dur="2.1s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="40" cy="25" r="6" fill="#a82e2e">
+                  <animate attributeName="r" values="6;6.5;6" dur="1.7s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="60" cy="25" r="6" fill="#a82e2e">
+                  <animate attributeName="r" values="6;6.5;6" dur="2.3s" repeatCount="indefinite" />
+                </circle>
               </svg>
             </div>
-            <div className="text-[18px] text-[#a82e2e] font-['VT323'] mt-2">-30%</div>
+            <div className={`text-[18px] text-[#a82e2e] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow-red' : 'scale-100'}`}>
+              -30%
+            </div>
           </div>
         );
         
@@ -371,9 +478,9 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
       default:
         return (
           <div className="relative flex flex-col items-center">
-            <div className="w-48 h-48 relative flex items-center justify-center">
+            <div className={`w-64 h-32 relative flex items-center justify-center ${glowClass}`}>
               {/* Just pot (0-10%) */}
-              <svg width="100" height="50" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+              <svg width="140" height="70" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
                 {/* Pot base */}
                 <rect x="30" y="30" width="40" height="15" fill="#1f5d1f" />
                 {/* Pot top - wider than base */}
@@ -388,15 +495,14 @@ export function BonsaiTree({ growthState, percentChange }: BonsaiTreeProps) {
                 </g>
               </svg>
             </div>
-            <div className="text-[18px] text-[#22ff33] font-['VT323'] mt-2">0%</div>
           </div>
         );
     }
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className={`flex flex-col items-center transition-all duration-500 ${isTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}>
       {renderBonsai()}
     </div>
   );
-}
+};

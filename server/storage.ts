@@ -11,6 +11,7 @@ export interface IStorage {
   saveBonsaiSettings(settings: InsertBonsaiSettings): Promise<BonsaiSettings>;
   getBonsaiLogs(userId: string): Promise<BonsaiLog[]>;
   addBonsaiLog(log: InsertBonsaiLog): Promise<BonsaiLog>;
+  clearBonsaiLogs(userId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -50,18 +51,30 @@ export class MemStorage implements IStorage {
 
   // BTC Bonsai operations
   async getBonsaiSettings(userId: string): Promise<BonsaiSettings | undefined> {
-    return this.bonsaiSettings.get(userId);
+    const settings = this.bonsaiSettings.get(userId);
+    if (settings) {
+      // Ensure growthFrequency is always present
+      return { ...settings, growthFrequency: settings.growthFrequency ?? "day" };
+    }
+    return undefined;
   }
 
   async saveBonsaiSettings(insertSettings: InsertBonsaiSettings): Promise<BonsaiSettings> {
+    console.log('saveBonsaiSettings called with:', insertSettings);
     const existing = await this.getBonsaiSettings(insertSettings.userId);
     
     if (existing) {
       // Update existing settings
       const updatedSettings: BonsaiSettings = {
-        ...existing,
-        ...insertSettings,
-        updatedAt: new Date(),
+        id: existing.id,
+        userId: existing.userId,
+        positiveThresholds: insertSettings.positiveThresholds as number[],
+        negativeThresholds: insertSettings.negativeThresholds as number[],
+        useAverageBuyPrice: insertSettings.useAverageBuyPrice ?? true,
+        anchorPrice: insertSettings.anchorPrice ?? null,
+        growthFrequency: insertSettings.growthFrequency ?? "day",
+        createdAt: existing.createdAt,
+        updatedAt: new Date()
       };
       
       this.bonsaiSettings.set(insertSettings.userId, updatedSettings);
@@ -73,9 +86,14 @@ export class MemStorage implements IStorage {
       
       const newSettings: BonsaiSettings = {
         id,
-        ...insertSettings,
+        userId: insertSettings.userId,
+        positiveThresholds: insertSettings.positiveThresholds as number[],
+        negativeThresholds: insertSettings.negativeThresholds as number[],
+        useAverageBuyPrice: insertSettings.useAverageBuyPrice ?? true,
+        anchorPrice: insertSettings.anchorPrice ?? null,
+        growthFrequency: insertSettings.growthFrequency ?? "day",
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       };
       
       this.bonsaiSettings.set(insertSettings.userId, newSettings);
@@ -93,8 +111,11 @@ export class MemStorage implements IStorage {
     
     const newLog: BonsaiLog = {
       id,
-      ...insertLog,
+      userId: insertLog.userId,
+      type: insertLog.type,
+      price: insertLog.price,
       timestamp,
+      note: insertLog.note ?? null
     };
     
     // Initialize array if it doesn't exist
@@ -106,6 +127,12 @@ export class MemStorage implements IStorage {
     this.bonsaiLogs.get(insertLog.userId)!.push(newLog);
     
     return newLog;
+  }
+
+  async clearBonsaiLogs(userId: string): Promise<void> {
+    console.log('clearBonsaiLogs called for user:', userId);
+    this.bonsaiLogs.set(userId, []);
+    console.log('bonsaiLogs after clear:', this.bonsaiLogs.get(userId));
   }
 }
 

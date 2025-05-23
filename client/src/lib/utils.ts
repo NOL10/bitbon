@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { GrowthState, GrowthFrequency } from "./types";
+import { GrowthState, GrowthFrequency, BonsaiLog, BonsaiSettings } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -23,14 +23,14 @@ export function formatCurrency(value: number | null | undefined): string {
   return `${formattedInteger}.${decimalPart}`;
 }
 
-// Calculate percentage change between current and anchor price
+// Calculate percentage change between current and historical price
 export function calculateGrowthPercent(
-  currentPrice: number | null, 
-  anchorPrice: number | null
+  currentPrice: number | null,
+  historicalPrice: number | null
 ): number {
-  if (!currentPrice || !anchorPrice || anchorPrice === 0) return 0;
+  if (!currentPrice || !historicalPrice || historicalPrice === 0) return 0;
   
-  return ((currentPrice - anchorPrice) / anchorPrice) * 100;
+  return ((currentPrice - historicalPrice) / historicalPrice) * 100;
 }
 
 // Calculate the adjusted growth percentage based on the chosen frequency
@@ -38,15 +38,8 @@ export function calculateAdjustedGrowthPercent(
   percentChange: number,
   growthFrequency: GrowthFrequency = "day"
 ): number {
-  // Apply frequency multipliers to adjust growth rate based on selected timeframe
-  const multipliers = {
-    day: 1,
-    week: 0.7,   // Slower growth over a week
-    month: 0.5,  // Even slower over a month
-    year: 0.25   // Slowest over a year
-  };
-  
-  return percentChange * multipliers[growthFrequency];
+  // No need for multipliers anymore since we're using actual time-based data
+  return percentChange;
 }
 
 // Determine the growth state based on percentage change and thresholds
@@ -56,9 +49,6 @@ export function calculateGrowthStage(
   negativeThresholds: number[] = [-10, -20, -30],
   growthFrequency: GrowthFrequency = "day"
 ): GrowthState {
-  // Adjust growth percentage based on frequency
-  const adjustedPercent = calculateAdjustedGrowthPercent(percentChange, growthFrequency);
-  
   // Sort thresholds in ascending order
   const sortedPositive = [...positiveThresholds].sort((a, b) => a - b);
   const sortedNegative = [...negativeThresholds].sort((a, b) => a - b);
@@ -68,30 +58,30 @@ export function calculateGrowthStage(
   const lowestNegative = sortedNegative[0];
   
   // All time high case
-  if (adjustedPercent > highestPositive) {
+  if (percentChange > highestPositive) {
     return "ath";
   }
   
   // All time low case
-  if (adjustedPercent < lowestNegative) {
+  if (percentChange < lowestNegative) {
     return "atl";
   }
   
   // Positive cases
-  if (adjustedPercent >= sortedPositive[2]) {
+  if (percentChange >= sortedPositive[2]) {
     return "positive-30";
-  } else if (adjustedPercent >= sortedPositive[1]) {
+  } else if (percentChange >= sortedPositive[1]) {
     return "positive-20";
-  } else if (adjustedPercent >= sortedPositive[0]) {
+  } else if (percentChange >= sortedPositive[0]) {
     return "positive-10";
   }
   
   // Negative cases
-  if (adjustedPercent <= sortedNegative[0]) {
+  if (percentChange <= sortedNegative[0]) {
     return "negative-30";
-  } else if (adjustedPercent <= sortedNegative[1]) {
+  } else if (percentChange <= sortedNegative[1]) {
     return "negative-20";
-  } else if (adjustedPercent <= sortedNegative[2]) {
+  } else if (percentChange <= sortedNegative[2]) {
     return "negative-10";
   }
   
@@ -100,9 +90,136 @@ export function calculateGrowthStage(
 }
 
 // Calculate average buy price from water logs
-export function calculateAverageBuyPrice(waterLogs: { price: number }[]): number | null {
-  if (!waterLogs || waterLogs.length === 0) return null;
+export function calculateAverageBuyPrice(logs: BonsaiLog[]): number | null {
+  if (!logs || logs.length === 0) return null;
+
+  // Filter only water (buy) logs and sort by timestamp
+  const buyLogs = logs
+    .filter(log => log.type === 'water')
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  if (buyLogs.length === 0) return null;
+
+  // Filter and sort sell logs
+  const sellLogs = logs
+    .filter(log => log.type === 'harvest')
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  // Track remaining BTC from each buy
+  const remainingBuys = buyLogs.map(log => ({
+    price: log.price,
+    amount: 1, // Assuming 1 BTC per buy
+    timestamp: new Date(log.timestamp).getTime()
+  }));
+
+  // Process sells
+  for (const sell of sellLogs) {
+    const sellAmount = 1; // Assuming 1 BTC per sell
+    let remainingSellAmount = sellAmount;
+
+    // Process sells using FIFO (First In, First Out)
+    while (remainingSellAmount > 0 && remainingBuys.length > 0) {
+      const oldestBuy = remainingBuys[0];
+      
+      if (oldestBuy.amount <= remainingSellAmount) {
+        // This buy is completely sold
+        remainingSellAmount -= oldestBuy.amount;
+        remainingBuys.shift();
+      } else {
+        // Partial sell of this buy
+        oldestBuy.amount -= remainingSellAmount;
+        remainingSellAmount = 0;
+      }
+    }
+  }
+
+  // Calculate weighted average of remaining buys
+  let totalInvestment = 0;
+  let totalAmount = 0;
+
+  for (const buy of remainingBuys) {
+    totalInvestment += buy.price * buy.amount;
+    totalAmount += buy.amount;
+  }
+
+  // Handle edge cases
+  if (totalAmount <= 0) return null;
+  if (totalInvestment <= 0) return null;
+
+  // Calculate final average
+  return totalInvestment / totalAmount;
+}
+
+export function exportData(data: any, filename: string) {
+  const jsonString = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
   
-  const total = waterLogs.reduce((sum, log) => sum + log.price, 0);
-  return total / waterLogs.length;
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function exportLogs(logs: BonsaiLog[]) {
+  // Format the logs into a readable text format
+  const formattedLogs = logs.map(log => {
+    const date = new Date(log.timestamp).toLocaleString();
+    const type = log.type.toUpperCase();
+    const price = formatCurrency(log.price);
+    const note = log.note ? `\nNote: ${log.note}` : '';
+    return `Date: ${date}\nAction: ${type}\nPrice: ${price}${note}\n${'-'.repeat(50)}`;
+  }).join('\n\n');
+
+  const exportDate = new Date().toLocaleString();
+  const content = `Bitcoin Bonsai Logs
+Exported on: ${exportDate}
+Total Entries: ${logs.length}
+
+${formattedLogs}`;
+
+  // Create and download the text file
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `bonsai-logs-${new Date().toISOString().split('T')[0]}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function exportSettings(settings: BonsaiSettings) {
+  const dataToExport = {
+    exportDate: new Date().toISOString(),
+    settings: {
+      ...settings,
+      createdAt: settings.createdAt?.toISOString(),
+      updatedAt: settings.updatedAt?.toISOString()
+    }
+  };
+  
+  exportData(dataToExport, `bonsai-settings-${new Date().toISOString().split('T')[0]}.json`);
+}
+
+// --- Price Threshold Glow Utilities ---
+export const PRICE_THRESHOLDS = [100000, 125000, 150000, 200000];
+
+/**
+ * Returns true if price is within ±percent% of any threshold.
+ * @param price The current price
+ * @param thresholds Array of threshold numbers
+ * @param percent Percentage window (default 1)
+ */
+export function isNearThreshold(price: number, thresholds: number[] = PRICE_THRESHOLDS, percent = 1): boolean {
+  return thresholds.some(threshold => {
+    const lower = threshold * (1 - percent / 100);
+    const upper = threshold * (1 + percent / 100);
+    return price >= lower && price <= upper;
+  });
 }

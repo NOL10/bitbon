@@ -176,3 +176,12 @@
     text-shadow: 0 0 5px #ffcc33, 0 0 10px #ffcc33, 0 0 15px #ffcc33;
   }
 }
+.drag-region {
+  -webkit-app-region: drag;
+  width: 100%;
+  height: 32px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}

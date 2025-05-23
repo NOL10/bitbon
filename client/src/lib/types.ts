@@ -70,3 +70,9 @@ export interface UpdateBtcDataParams {
   anchorPrice?: number;
   previousClose?: number;
 }
+
+export interface HistoricalPriceData {
+  prices: [number, number][];
+  market_caps: [number, number][];
+  total_volumes: [number, number][];
+}

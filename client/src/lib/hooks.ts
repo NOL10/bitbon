@@ -3,9 +3,10 @@ import { BtcPriceResponse } from "./types";
 import { fetchBtcPrice } from "./api";
 
 // Fetch the BTC price from CoinGecko API
-export function useBtcPrice(refetchInterval = 5 * 60 * 1000) { // Default to 5 minutes
+export function useBtcPrice(refetchInterval = 60000) { // Default to 1 minute
   return useQuery<BtcPriceResponse>({
-    queryKey: ['/api/btc/price'],
+    queryKey: ['btc-price'],
+    queryFn: fetchBtcPrice,
     refetchInterval,
   });
 }
