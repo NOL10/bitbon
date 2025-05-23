@@ -6,7 +6,8 @@
   "main": "electron/main.cjs",
   "description": "A beautiful Bitcoin price widget for your desktop",
   "author": {
-    "name": "Bitcoin Bonsai Team"
+    "name": "Noel George",
+    "email": "noelgeorge1012@gmail.com"
   },
   "repository": {
     "type": "git",
