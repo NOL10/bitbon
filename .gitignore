@@ -6,3 +6,4 @@ vite.config.ts.*
 *.tar.gzrelease/
 release/
 release/
+release/
