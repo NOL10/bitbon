@@ -8,7 +8,7 @@ A beautiful, always-on-top, cross-platform desktop widget that visualizes Bitcoi
 - Live Bitcoin price tracking (via CoinGecko)
 - Bonsai tree visualization that grows/shrinks with price changes
 - Always-on-top, frameless, transparent desktop widget
-- Click-through mode (optional)
+- Click-through mode (soon)
 - Local settings and logs (no backend required)
 - Cross-platform: macOS, Windows, Linux
 - Easy install: just download and run
