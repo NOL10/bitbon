@@ -9,6 +9,7 @@ import Home from "@/pages/home";
 import Settings from "@/pages/settings";
 import { BonsaiProvider } from "./lib/store";
 import TreeStagesDemo from "@/pages/tree-stages";
+import StagesPreview from "@/pages/stages-preview";
 
 function App() {
   return (
@@ -16,18 +17,19 @@ function App() {
       <TooltipProvider>
         <BonsaiProvider>
           <Router hook={useHashLocation}>
-            <div className="relative min-h-screen overflow-hidden">
+          <div className="relative min-h-screen overflow-hidden">
               {/* Draggable region for Electron */}
               <div className="drag-region"></div>
-              <div className="crt grid-lines scanlines absolute inset-0 pointer-events-none"></div>
-              <Toaster />
+            <div className="crt grid-lines scanlines absolute inset-0 pointer-events-none"></div>
+            <Toaster />
               <Switch>
                 <Route path="/" component={Home} />
                 <Route path="/settings" component={Settings} />
                 <Route path="/tree-stages" component={TreeStagesDemo} />
+                <Route path="/stages-preview" component={StagesPreview} />
                 <Route component={NotFound} />
               </Switch>
-            </div>
+          </div>
           </Router>
         </BonsaiProvider>
       </TooltipProvider>

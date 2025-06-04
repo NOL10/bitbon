@@ -69,9 +69,10 @@ function createWindow() {
     y: 20, // Position near the top
     frame: false, // Remove window frame
     transparent: true, // Make window transparent
-    alwaysOnTop: true, // Keep window on top
+    alwaysOnTop: false, // Don't always stay on top
     hasShadow: false, // Remove window shadow
     skipTaskbar: true, // Hide from taskbar
+    focusable: false, // Start as non-focusable
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -99,6 +100,7 @@ function createWindow() {
   ipcMain.on('toggle-click-through', () => {
     isClickThrough = !isClickThrough;
     mainWindow.setIgnoreMouseEvents(isClickThrough, { forward: true });
+    mainWindow.setFocusable(!isClickThrough);
   });
 
   // Handle window position save
@@ -106,9 +108,23 @@ function createWindow() {
     mainWindow.setPosition(x, y);
   });
 
+  // Handle app close
+  ipcMain.on('close-app', () => {
+    app.quit();
+  });
+
   // Handle window close
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  // Make window interactive on click
+  mainWindow.on('click', () => {
+    if (isClickThrough) {
+      isClickThrough = false;
+      mainWindow.setIgnoreMouseEvents(false);
+      mainWindow.setFocusable(true);
+    }
   });
 
   // Prevent navigation

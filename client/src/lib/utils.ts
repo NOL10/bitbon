@@ -42,50 +42,57 @@ export function calculateAdjustedGrowthPercent(
   return percentChange;
 }
 
-// Determine the growth state based on percentage change and thresholds
+// Add new function to get market ATH/ATL
+export async function getMarketATHATL(): Promise<{ ath: number; atl: number }> {
+  try {
+    // Fetch historical BTC prices for the last year to determine ATH/ATL
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=365');
+    const data = await response.json();
+    
+    const prices = data.prices.map((p: [number, number]) => p[1]);
+    const ath = Math.max(...prices);
+    const atl = Math.min(...prices);
+    
+    return { ath, atl };
+  } catch (error) {
+    console.error('Error fetching market ATH/ATL:', error);
+    // Return null values if fetch fails
+    return { ath: 0, atl: 0 };
+  }
+}
+
+// Modify the growth stage calculation
 export function calculateGrowthStage(
   percentChange: number,
-  positiveThresholds: number[] = [10, 20, 30],
-  negativeThresholds: number[] = [-10, -20, -30],
-  growthFrequency: GrowthFrequency = "day"
+  currentPrice: number,
+  marketATH: number,
+  marketATL: number,
+  positiveThresholds: number[],
+  negativeThresholds: number[],
+  growthFrequency: GrowthFrequency
 ): GrowthState {
-  // Sort thresholds in ascending order
-  const sortedPositive = [...positiveThresholds].sort((a, b) => a - b);
-  const sortedNegative = [...negativeThresholds].sort((a, b) => a - b);
-  
-  // Find the highest and lowest thresholds
-  const highestPositive = sortedPositive[sortedPositive.length - 1];
-  const lowestNegative = sortedNegative[0];
-  
-  // All time high case
-  if (percentChange > highestPositive) {
+  // Check if price is within 5% of ATH or ATL
+  const isNearATH = marketATH > 0 && Math.abs((currentPrice - marketATH) / marketATH) <= 0.05;
+  const isNearATL = marketATL > 0 && Math.abs((currentPrice - marketATL) / marketATL) <= 0.05;
+
+  if (isNearATH) {
     return "ath";
   }
-  
-  // All time low case
-  if (percentChange < lowestNegative) {
+  if (isNearATL) {
     return "atl";
   }
-  
-  // Positive cases
-  if (percentChange >= sortedPositive[2]) {
-    return "positive-30";
-  } else if (percentChange >= sortedPositive[1]) {
-    return "positive-20";
-  } else if (percentChange >= sortedPositive[0]) {
-    return "positive-10";
+
+  // If not near ATH/ATL, use the regular threshold logic
+  if (percentChange > 0) {
+    if (percentChange >= positiveThresholds[2]) return "positive-30";
+    if (percentChange >= positiveThresholds[1]) return "positive-20";
+    if (percentChange >= positiveThresholds[0]) return "positive-10";
+  } else if (percentChange < 0) {
+    if (percentChange <= negativeThresholds[0]) return "negative-30";
+    if (percentChange <= negativeThresholds[1]) return "negative-20";
+    if (percentChange <= negativeThresholds[2]) return "negative-10";
   }
   
-  // Negative cases
-  if (percentChange <= sortedNegative[0]) {
-    return "negative-30";
-  } else if (percentChange <= sortedNegative[1]) {
-    return "negative-20";
-  } else if (percentChange <= sortedNegative[2]) {
-    return "negative-10";
-  }
-  
-  // Default neutral case
   return "neutral";
 }
 

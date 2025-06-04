@@ -184,9 +184,6 @@ export const BonsaiTree: React.FC<BonsaiTreeProps> = ({ growthState, percentChan
                 </circle>
               </svg>
             </div>
-            <div className={`text-[18px] text-[#22ff33] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow' : 'scale-100'}`}>
-              +10%
-            </div>
           </div>
         );
       
@@ -237,9 +234,6 @@ export const BonsaiTree: React.FC<BonsaiTreeProps> = ({ growthState, percentChan
                   <animate attributeName="r" values="6;6.5;6" dur="2.1s" repeatCount="indefinite" />
                 </circle>
               </svg>
-            </div>
-            <div className={`text-[18px] text-[#22ff33] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow' : 'scale-100'}`}>
-              +20%
             </div>
           </div>
         );
@@ -306,9 +300,6 @@ export const BonsaiTree: React.FC<BonsaiTreeProps> = ({ growthState, percentChan
                 </circle>
               </svg>
             </div>
-            <div className={`text-[18px] text-[#22ff33] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow' : 'scale-100'}`}>
-              +30%
-            </div>
           </div>
         );
         
@@ -345,9 +336,6 @@ export const BonsaiTree: React.FC<BonsaiTreeProps> = ({ growthState, percentChan
                   <animate attributeName="r" values="5;5.5;5" dur="2.2s" repeatCount="indefinite" />
                 </circle>
               </svg>
-            </div>
-            <div className={`text-[18px] text-[#a82e2e] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow-red' : 'scale-100'}`}>
-              -10%
             </div>
           </div>
         );
@@ -399,9 +387,6 @@ export const BonsaiTree: React.FC<BonsaiTreeProps> = ({ growthState, percentChan
                   <animate attributeName="r" values="6;6.5;6" dur="2.1s" repeatCount="indefinite" />
                 </circle>
               </svg>
-            </div>
-            <div className={`text-[18px] text-[#a82e2e] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow-red' : 'scale-100'}`}>
-              -20%
             </div>
           </div>
         );
@@ -467,9 +452,6 @@ export const BonsaiTree: React.FC<BonsaiTreeProps> = ({ growthState, percentChan
                   <animate attributeName="r" values="6;6.5;6" dur="2.3s" repeatCount="indefinite" />
                 </circle>
               </svg>
-            </div>
-            <div className={`text-[18px] text-[#a82e2e] font-['VT323'] mt-2 transition-all duration-500 ${isGlowing ? 'scale-110 text-shadow-glow-red' : 'scale-100'}`}>
-              -30%
             </div>
           </div>
         );

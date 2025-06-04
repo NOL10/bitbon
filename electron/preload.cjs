@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld(
     isClickThrough: () => ipcRenderer.invoke('get-click-through-state'),
     quit: () => ipcRenderer.send('quit-app'),
     getBtcPrice: () => ipcRenderer.invoke('get-btc-price'),
+    closeApp: () => ipcRenderer.send('close-app'),
   }
 ); 

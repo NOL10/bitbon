@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useBonsaiStore } from "@/lib/store";
 import { useBtcPrice } from "@/lib/hooks";
-import { formatCurrency, calculateGrowthStage, calculateGrowthPercent, isNearThreshold, PRICE_THRESHOLDS, calculateAverageBuyPrice } from "@/lib/utils";
+import { formatCurrency, calculateGrowthStage, calculateGrowthPercent, isNearThreshold, PRICE_THRESHOLDS, calculateAverageBuyPrice, getMarketATHATL } from "@/lib/utils";
 import { GrowthState, GrowthFrequency } from "@/lib/types";
 import { BonsaiTree } from "@/components/BonsaiTree";
 
@@ -81,6 +81,40 @@ export default function Home() {
   let percentChange = 0;
   let growthState: GrowthState = "neutral";
 
+  const [marketATH, setMarketATH] = useState<number>(0);
+  const [marketATL, setMarketATL] = useState<number>(0);
+
+  // Fetch market ATH/ATL data
+  useEffect(() => {
+    const fetchMarketData = async () => {
+      const { ath, atl } = await getMarketATHATL();
+      setMarketATH(ath);
+      setMarketATL(atl);
+    };
+    
+    fetchMarketData();
+    // Refresh ATH/ATL data every hour
+    const interval = setInterval(fetchMarketData, 3600000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const [lastATHTime, setLastATHTime] = useState<number | null>(null);
+  const ATH_GLOW_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+  // Function to check if we're within 24 hours of hitting ATH
+  const isWithinATHGlowPeriod = () => {
+    if (!lastATHTime) return false;
+    const now = Date.now();
+    return now - lastATHTime < ATH_GLOW_DURATION;
+  };
+
+  // Update lastATHTime when we hit ATH
+  useEffect(() => {
+    if (growthState === "ath" && !isWithinATHGlowPeriod()) {
+      setLastATHTime(Date.now());
+    }
+  }, [growthState]);
+
   if (avgBuyPrice && avgBuyPrice > 0 && pricesInWindow.length > 0) {
     let maxPercent = -Infinity;
     let minPercent = Infinity;
@@ -96,8 +130,11 @@ export default function Home() {
     }
     growthState = calculateGrowthStage(
       percentChange,
-      settings?.positiveThresholds || [10, 20, 30],
-      settings?.negativeThresholds || [-10, -20, -30],
+      btcData.currentPrice || 0,
+      marketATH,
+      marketATL,
+      settings?.positiveThresholds || [2, 5, 10],
+      settings?.negativeThresholds || [-10, -5, -2],
       settings?.growthFrequency || "day"
     );
   } else {
@@ -166,9 +203,11 @@ export default function Home() {
 
   const isLoading = isLoadingSettings || isLoadingLogs || isLoadingPrice;
 
-  const priceGlowClass = isNearThreshold(btcData.currentPrice ?? 0, PRICE_THRESHOLDS, 1)
-    ? "gold-glow text-[#ffd700]"
-    : "green-glow text-[#22ff33]";
+  const priceGlowClass = isWithinATHGlowPeriod()
+    ? "gold-glow text-[#ffd700] animate-pulse"
+    : isNearThreshold(btcData.currentPrice ?? 0, PRICE_THRESHOLDS, 1)
+      ? "gold-glow text-[#ffd700]"
+      : "green-glow text-[#22ff33]";
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center p-0 m-0 bg-black">
@@ -178,7 +217,7 @@ export default function Home() {
       </div>
       
       {/* Main widget */}
-      <div className="relative w-[340px] h-[590px] border-4 border-[#22ff33] bg-[#051405] text-[#22ff33] overflow-hidden shadow-xl rounded-lg flex flex-col">
+      <div className="relative w-[340px] h-[590px] border-4 border-[#22ff33] bg-[#051405] text-[#22ff33] overflow-y-auto shadow-xl rounded-lg flex flex-col">
         {/* Widget border effect - double border as seen in the mockup */}
         <div className="absolute inset-0 border-2 border-[#22ff33]/40 m-2 pointer-events-none rounded-lg"></div>
         {/* Content with subtle grid effect */}
@@ -205,8 +244,15 @@ export default function Home() {
               {(!avgBuyPrice || avgBuyPrice === 0) && (
                 <div className="text-[#ff3333] text-center text-lg font-['VT323'] mb-4 animate-pulse">WATER YOUR BONSAI TO BEGIN!</div>
               )}
-              {/* Bitcoin price - with glowing effect at threshold values */}
-              <div className={`text-[24px] font-['VT323'] w-full text-center mb-6 tracking-wider ${priceGlowClass}`}>BTC PRICE: {formatCurrency(btcData.currentPrice || 0)}$</div>
+              {/* Bitcoin price - with glowing effect at threshold values and ATH */}
+              <div className={`text-[24px] font-['VT323'] w-full text-center mb-6 tracking-wider ${priceGlowClass}`}>
+                BTC PRICE: {formatCurrency(btcData.currentPrice || 0)}$
+                {isWithinATHGlowPeriod() && (
+                  <div className="text-[14px] text-[#ffd700] mt-1 animate-pulse">
+                    ALL TIME HIGH ACHIEVED!
+                  </div>
+                )}
+              </div>
               {/* Settings button - styled to match action buttons */}
               <div className="w-full border-4 border-[#22ff33] rounded-lg overflow-hidden bg-[#051405] relative shadow-lg h-[54px] mb-3 flex items-center justify-center">
                 <Link href="/settings" className="w-full h-full">

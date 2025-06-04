@@ -18,8 +18,8 @@ export default function Settings() {
   const [, setLocation] = useLocation();
   const { data: latestPrice } = useBtcPrice();
   
-  const [positiveThresholds, setPositiveThresholds] = useState<number[]>([10, 20, 30]);
-  const [negativeThresholds, setNegativeThresholds] = useState<number[]>([-30, -20, -10]);
+  const [positiveThresholds, setPositiveThresholds] = useState<number[]>([2, 5, 10]);
+  const [negativeThresholds, setNegativeThresholds] = useState<number[]>([-10, -5, -2]);
   const [useAverageBuyPrice, setUseAverageBuyPrice] = useState(true);
   const [anchorPrice, setAnchorPrice] = useState<number | null>(null);
   const [growthFrequency, setGrowthFrequency] = useState<GrowthFrequency>("day");
@@ -42,6 +42,22 @@ export default function Settings() {
   }
   const averageBuyPrice = calculateAverageBuyPrice(waterLogs);
 
+  // Calculate total portfolio gain/loss from harvest percentages
+  const calculateTotalPortfolioGainLoss = () => {
+    if (!logs) return null;
+    const harvestLogs = logs.filter(log => log.type === "harvest");
+    if (harvestLogs.length === 0) return null;
+    
+    const totalGainLoss = harvestLogs.reduce((sum, log) => {
+      const percentMatch = log.note?.match(/([+-]?\d+\.?\d*)%/);
+      return sum + (percentMatch ? parseFloat(percentMatch[1]) : 0);
+    }, 0);
+    
+    return totalGainLoss;
+  };
+
+  const totalPortfolioGainLoss = calculateTotalPortfolioGainLoss();
+
   // Error state
   const hasError = (!settings && !isLoadingSettings) || (!logs && !isLoadingLogs);
 
@@ -55,19 +71,25 @@ export default function Settings() {
     }
   }, [showPercentageChange, settings, isLoadingSettings]);
 
-  const validateThreshold = (value: string): number | null => {
+   const validateThreshold = (value: string, isPositive: boolean): number | null => {
     const num = parseFloat(value);
     if (isNaN(num)) return null;
-    if (num < -100 || num > 100) return null;
+    
+    // For positive thresholds, only allow values between 0 and 100
+    if (isPositive && (num < 0 || num > 100)) return null;
+    
+    // For negative thresholds, only allow values between -100 and 0
+    if (!isPositive && (num > 0 || num < -100)) return null;
+    
     return num;
   };
 
   const handlePositiveThresholdChange = (index: number, value: string) => {
-    const validatedValue = validateThreshold(value);
+    const validatedValue = validateThreshold(value, true);
     if (validatedValue === null) {
       toast({
         title: "Invalid Input",
-        description: "Please enter a number between -100 and 100",
+        description: "Please enter a number between 0 and 100",
         variant: "destructive"
       });
       return;
@@ -79,11 +101,11 @@ export default function Settings() {
   };
 
   const handleNegativeThresholdChange = (index: number, value: string) => {
-    const validatedValue = validateThreshold(value);
+    const validatedValue = validateThreshold(value, false);
     if (validatedValue === null) {
       toast({
         title: "Invalid Input",
-        description: "Please enter a number between -100 and 100",
+        description: "Please enter a number between -100 and 0",
         variant: "destructive"
       });
       return;
@@ -111,7 +133,7 @@ export default function Settings() {
     if (JSON.stringify(sortedNegative) !== JSON.stringify(negativeThresholds)) {
       toast({
         title: "Invalid Thresholds",
-        description: "Negative thresholds must be in ascending order",
+        description: "Negative thresholds must be in ascending order (from most negative to least negative)",
         variant: "destructive"
       });
       return false;
@@ -172,18 +194,18 @@ export default function Settings() {
       // Clear logs
       await clearBonsaiLogs();
 
-      // Save default settings
+      // Save default settings with properly ordered thresholds
       await saveSettings({
-        positiveThresholds: [10, 20, 30],
-        negativeThresholds: [-30, -20, -10],
+        positiveThresholds: [2, 5, 10],
+        negativeThresholds: [-10, -5, -2], // Most negative to least negative
         useAverageBuyPrice: false,
         anchorPrice: null,
         growthFrequency: "day"
       });
 
       // Reset local state
-      setPositiveThresholds([10, 20, 30]);
-      setNegativeThresholds([-30, -20, -10]);
+      setPositiveThresholds([2, 5, 10]);
+      setNegativeThresholds([-10, -5, -2]); // Most negative to least negative
       setUseAverageBuyPrice(false);
       setAnchorPrice(null);
       setGrowthFrequency("day");
@@ -266,13 +288,13 @@ export default function Settings() {
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center p-0 m-0 bg-black overflow-hidden">
-      {/* Scanlines effect */}
+      {/* Scanlines effect - fixed position */}
       <div className="fixed inset-0 pointer-events-none z-10 opacity-10">
         <div className="w-full h-full bg-scanlines"></div>
       </div>
       
       {/* Main settings panel - styled to exactly match app settings.png */}
-      <div className="relative w-[330px] h-[550px] border-4 border-[#22ff33] bg-[#051405] text-[#22ff33] overflow-hidden">
+      <div className="relative w-[330px] h-[550px] border-4 border-[#22ff33] bg-[#051405] text-[#22ff33] overflow-y-auto">
         {/* Widget border effect - double border as seen in the mockup */}
         <div className="absolute inset-0 border-2 border-[#22ff33]/20 m-2 pointer-events-none"></div>
         
@@ -294,9 +316,18 @@ export default function Settings() {
               
               {/* Average Buy Price Display - styled to match app settings.png */}
               <div className="w-full mb-6 text-center">
-                <div className="text-[18px] font-['VT323'] mb-1 text-[#22ff33]/80">BONSAI WATERED</div>
+                {totalPortfolioGainLoss !== null && (
+                  <div className="flex flex-col items-center">
+                    <div className={`text-[28px] font-['VT323'] mb-2 ${totalPortfolioGainLoss >= 0 ? 'text-[#22ff33]' : 'text-[#ff3333]'}`}>
+                      TOTAL PORTFOLIO {totalPortfolioGainLoss >= 0 ? 'GAIN' : 'LOSS'}
+                    </div>
+                    <div className={`text-[28px] font-['VT323'] ${totalPortfolioGainLoss >= 0 ? 'text-[#22ff33]' : 'text-[#ff3333]'}`}>
+                      {totalPortfolioGainLoss >= 0 ? '+' : ''}{totalPortfolioGainLoss.toFixed(2)}%
+                    </div>
+                  </div>
+                )}
                 <div className="text-[18px] font-['VT323'] mb-4 text-[#22ff33]/80">AVERAGE BUY PRICE:</div>
-                <div className="text-[28px] font-['VT323'] mb-8 text-[#22ff33]">${formatCurrency(averageBuyPrice || 0)}</div>
+                <div className="text-[18px] font-['VT323'] text-[#22ff33]">${formatCurrency(averageBuyPrice || 0)}</div>
               </div>
               
               {/* Action buttons - exactly matching the mockup layout and style */}
@@ -349,26 +380,33 @@ export default function Settings() {
                 <div className="absolute top-0 left-0 w-full h-full bg-[#051405] border-2 border-[#22ff33] p-4 z-20 overflow-y-auto flex flex-col">
                   <h2 className="text-[24px] font-['VT323'] mb-6 text-center">ADVANCED SETTINGS</h2>
                   
-                  {/* Coming Soon Message */}
+                  {/* GitHub Repository Link */}
                   <div className="flex-1 flex flex-col items-center justify-center">
-                    <p className="text-[22px] font-['VT323'] text-[#22ff33] text-center mb-4">NEW FEATURES</p>
-                    <p className="text-[18px] font-['VT323'] text-[#22ff33] text-center">COMING SOON</p>
+                    <a 
+                      href="https://github.com/NOL10/bitbon" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[22px] font-['VT323'] text-[#22ff33] text-center mb-4 hover:text-[#22ff33]/80 transition-colors"
+                    >
+                      GitHub Repository
+                    </a>
                   </div>
 
-                  {/* Credits */}
-                  <div className="mt-auto text-center">
-                    <p className="text-[16px] font-['VT323'] text-[#22ff33]/80 mb-2">Created by</p>
-                    <p className="text-[18px] font-['VT323'] text-[#22ff33]">Mr_Meadow</p>
-                    <p className="text-[18px] font-['VT323'] text-[#22ff33]">Noel George</p>
-                  </div>
+                  {/* Close App Button */}
+                  <button 
+                    onClick={() => window.electron?.closeApp?.()}
+                    className="w-full py-3 px-4 border border-[#ff3333] bg-[#051405] text-[#ff3333] font-['VT323'] text-lg hover:bg-[#ff3333]/10 transition-colors mb-4"
+                  >
+                    CLOSE APP
+                  </button>
 
                   {/* Back Button */}
-                    <button 
-                    className="w-full py-3 px-4 border border-[#22ff33] bg-[#051405] text-[#22ff33] font-['VT323'] text-lg hover:bg-[#22ff33]/10 transition-colors mt-6"
-                      onClick={() => setShowAdvanced(false)}
-                    >
-                      BACK
-                    </button>
+                  <button 
+                    className="w-full py-3 px-4 border border-[#22ff33] bg-[#051405] text-[#22ff33] font-['VT323'] text-lg hover:bg-[#22ff33]/10 transition-colors"
+                    onClick={() => setShowAdvanced(false)}
+                  >
+                    BACK
+                  </button>
                 </div>
               )}
               
@@ -445,21 +483,6 @@ export default function Settings() {
                 <div className="absolute top-0 left-0 w-full h-full bg-[#051405] border-2 border-[#22ff33] p-4 z-20 overflow-y-auto flex flex-col">
                   <h2 className="text-[24px] font-['VT323'] mb-6 text-center">SET PERCENTAGE CHANGE</h2>
                   
-                  {/* Growth Frequency Setting - Moved here */}
-                  <div className="mb-6">
-                    <h3 className="text-[18px] font-['VT323'] mb-2">GROWTH FREQUENCY</h3>
-                    <select 
-                      className="w-full border border-[#22ff33] bg-[#051405] text-[#22ff33] font-['VT323'] py-2 px-2 mb-4"
-                      value={growthFrequency}
-                      onChange={(e) => setGrowthFrequency(e.target.value as GrowthFrequency)}
-                    >
-                      <option value="day">DAY</option>
-                      <option value="week">WEEK</option>
-                      <option value="month">MONTH</option>
-                      <option value="year">YEAR</option>
-                    </select>
-                  </div>
-
                   {/* Positive Thresholds */}
                   <div className="mb-6">
                     <h3 className="text-[18px] font-['VT323'] mb-2">POSITIVE THRESHOLDS (%)</h3>

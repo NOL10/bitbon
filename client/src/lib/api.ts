@@ -8,6 +8,7 @@ declare global {
       platform?: string;
       isClickThrough?: () => Promise<boolean>;
       quit?: () => void;
+      closeApp?: () => void;
     };
   }
 }
@@ -67,7 +68,7 @@ export const fetchHistoricalBtcPrices = async (days: number): Promise<Historical
     
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}&interval=daily`);
     
-    if (!response.ok) {
+  if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
     
@@ -104,8 +105,8 @@ const SETTINGS_KEY = "bonsai_settings";
 const LOGS_KEY = "bonsai_logs";
 
 const DEFAULT_SETTINGS: BonsaiSettings = {
-  positiveThresholds: [10, 20, 30],
-  negativeThresholds: [-10, -20, -30],
+  positiveThresholds: [2, 5, 10],
+  negativeThresholds: [-10, -5, -2],
   useAverageBuyPrice: false,
   anchorPrice: null,
   growthFrequency: "day"
