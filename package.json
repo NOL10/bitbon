@@ -45,8 +45,7 @@
       "main": "electron/main.cjs"
     },
     "mac": {
-      "target": ["dmg", "zip"],
-      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "target": ["dmg"],
       "icon": "public/icon.icns",
       "category": "public.app-category.finance",
       "hardenedRuntime": false,
@@ -54,62 +53,28 @@
       "identity": null
     },
     "win": {
-      "target": ["nsis", "portable"],
-      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "target": ["nsis"],
       "icon": "public/icon.ico",
-      "requestedExecutionLevel": "asInvoker",
-      "signAndEditExecutable": false,
-      "verifyUpdateCodeSignature": false
+      "requestedExecutionLevel": "asInvoker"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
-      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "target": ["AppImage"],
       "icon": "public/icon.png",
       "category": "Finance",
       "maintainer": "Noel George",
-      "vendor": "BitBon",
-      "executableName": "bitbon",
-      "desktop": {
-        "Name": "BitBon",
-        "Comment": "A beautiful Bitcoin price widget for your desktop",
-        "Categories": "Finance;Utility;",
-        "StartupWMClass": "BitBon"
-      },
-      "deb": {
-        "depends": [
-          "libgtk-3-0",
-          "libnotify4",
-          "libnss3",
-          "libxss1",
-          "libxtst6",
-          "xdg-utils",
-          "libatspi2.0-0",
-          "libuuid1",
-          "libsecret-1-0"
-        ]
-      },
-      "appImage": {
-        "artifactName": "${productName}-${version}-${arch}.AppImage"
-      }
+      "vendor": "BitBon"
     },
     "nsis": {
       "oneClick": true,
       "perMachine": false,
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "BitBon",
-      "uninstallDisplayName": "BitBon"
+      "createStartMenuShortcut": true
     },
     "asar": true,
     "compression": "normal",
     "removePackageScripts": true,
-    "removePackageKeywords": true,
-    "extends": null,
-    "forceCodeSigning": false,
-    "afterSign": null,
-    "afterPack": null,
-    "publish": null
+    "removePackageKeywords": true
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

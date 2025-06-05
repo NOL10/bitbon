@@ -18,49 +18,17 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [ubuntu-latest]
         include:
-          - os: macos-latest
-            platform: mac
-            arch: arm64
-          - os: macos-latest
-            platform: mac
-            arch: x64
-          - os: windows-latest
-            platform: win
-            arch: x64
           - os: ubuntu-latest
             platform: linux
             arch: x64
 
     steps:
-      - name: Check out Git repository
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          # Use GITHUB_TOKEN instead of PAT_TOKEN for releases
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # Only fetch the specific tag we need
-          ref: ${{ github.ref }}
-          # Don't fetch all history
           fetch-depth: 1
-          # Don't fetch submodules
-          submodules: false
-
-      - name: Clean workspace (Windows)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
-          if (Test-Path dist) { Remove-Item -Recurse -Force dist }
-          if (Test-Path release) { Remove-Item -Recurse -Force release }
-
-      - name: Clean workspace (Unix)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
-        if: runner.os != 'Windows'
-        run: rm -rf node_modules dist release
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -69,208 +37,38 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 10
         run: |
           npm cache clean --force
-          npm install --ignore-scripts
-          cd client && npm install --ignore-scripts && cd ..
+          npm install
+          cd client && npm install && cd ..
 
       - name: Generate icons
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
         run: npm run generate-icons
 
       - name: Build client
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 10
         run: cd client && npm run build && cd ..
 
-      - name: Prepare application
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
-        shell: pwsh
-        if: runner.os == 'Windows'
-        run: |
-          if (Test-Path dist) { Remove-Item -Recurse -Force dist }
-          Copy-Item -Path client/dist -Destination dist -Recurse
-          if (-not (Test-Path public)) { Copy-Item -Path client/public -Destination public -Recurse -Force }
-
-      - name: Prepare application (Unix)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
-        shell: bash
-        if: runner.os != 'Windows'
-        run: |
-          rm -rf dist
-          cp -r client/dist dist
-          if [ ! -d "public" ]; then
-            cp -r client/public .
-          fi
-
-      - name: Install electron dependencies
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 10
-        run: |
-          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
-          npm rebuild --build-from-source
-
-      - name: Verify setup (Windows)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Get-ChildItem
-          Get-ChildItem dist
-          Get-ChildItem electron
-          Get-ChildItem public
-          Get-ChildItem node_modules
-          Get-Content package.json | Select-String electron
-
-      - name: Verify setup (Unix)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
-        if: runner.os != 'Windows'
-        run: |
-          ls -la
-          ls -la dist
-          ls -la electron
-          ls -la public
-          ls -la node_modules
-          grep electron package.json
-
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-0 \
-            libnotify4 \
-            libnss3 \
-            libxss1 \
-            libxtst6 \
-            xdg-utils \
-            libatspi2.0-0 \
-            libuuid1 \
-            libsecret-1-0 \
-            rpm \
-            dpkg \
-            fakeroot \
-            dpkg-dev \
-            rpm-build \
-            rpmdevtools \
-            desktop-file-utils
-
-      - name: Build installers (Windows)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 15
-        if: runner.os == 'Windows'
-        shell: pwsh
+      - name: Build installer
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
-          CSC_LINK: ""
-          CSC_KEY_PASSWORD: ""
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
           ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
-          ELECTRON_BUILDER_CACHE: "false"
-        run: npx electron-builder --win --x64 --publish=never --config.win.signAndEditExecutable=false --config.win.verifyUpdateCodeSignature=false
-
-      - name: Build installers (macOS)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 15
-        if: runner.os == 'macOS'
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
-          CSC_LINK: ""
-          CSC_KEY_PASSWORD: ""
-          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
-          ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
-          ELECTRON_BUILDER_CACHE: "false"
-        run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            npx electron-builder --mac --arm64 --publish=never --config.mac.identity=null
-          else
-            npx electron-builder --mac --x64 --publish=never --config.mac.identity=null
-          fi
-
-      - name: Build installers (Linux)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 15
-        if: runner.os == 'Linux'
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
-          CSC_LINK: ""
-          CSC_KEY_PASSWORD: ""
-          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
-          ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
-          ELECTRON_BUILDER_CACHE: "false"
-          ELECTRON_BUILDER_APPIMAGE: "true"
-          ELECTRON_BUILDER_DEB: "true"
-          ELECTRON_BUILDER_LINUX_DEB: "true"
-          ELECTRON_BUILDER_LINUX_APPIMAGE: "true"
-          ELECTRON_BUILDER_LINUX_TARGET: "AppImage deb"
-          ELECTRON_BUILDER_LINUX_ARCH: "x64"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_ARCH: "x64"
-          ELECTRON_BUILDER_LINUX_DEB_ARCH: "amd64"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_ARTIFACT_NAME: "BitBon-${version}-${arch}.AppImage"
-          ELECTRON_BUILDER_LINUX_DEB_ARTIFACT_NAME: "BitBon-${version}-${arch}.deb"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_CATEGORIES: "Finance;Utility;"
-          ELECTRON_BUILDER_LINUX_DEB_CATEGORIES: "Finance;Utility;"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_NAME: "BitBon"
-          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_NAME: "BitBon"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_COMMENT: "A beautiful Bitcoin price widget for your desktop"
-          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_COMMENT: "A beautiful Bitcoin price widget for your desktop"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_STARTUPWMCLASS: "BitBon"
-          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_STARTUPWMCLASS: "BitBon"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_MAINTAINER: "Noel George"
-          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_MAINTAINER: "Noel George"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_VENDOR: "BitBon"
-          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_VENDOR: "BitBon"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_EXECUTABLE_NAME: "bitbon"
-          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_EXECUTABLE_NAME: "bitbon"
-          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_DEPENDS: "libgtk-3-0,libnotify4,libnss3,libxss1,libxtst6,xdg-utils,libatspi2.0-0,libuuid1,libsecret-1-0"
-          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_DEPENDS: "libgtk-3-0,libnotify4,libnss3,libxss1,libxtst6,xdg-utils,libatspi2.0-0,libuuid1,libsecret-1-0"
         run: |
           rm -rf node_modules/.cache
           rm -rf release
-          npx electron-builder --linux --x64 --publish=never --config.compression=normal
-
-      - name: Verify artifacts (Windows)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: Get-ChildItem release
-
-      - name: Verify artifacts (Unix)
-        working-directory: ${{ github.workspace }}
-        timeout-minutes: 5
-        if: runner.os != 'Windows'
-        run: ls -la release
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        timeout-minutes: 5
-        with:
-          # Use GITHUB_TOKEN instead of PAT_TOKEN
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
-            ${{ github.workspace }}/release/*.exe
-            ${{ github.workspace }}/release/*.dmg
-            ${{ github.workspace }}/release/*.zip
-            ${{ github.workspace }}/release/*.AppImage
-            ${{ github.workspace }}/release/*.deb
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          # Add error handling for missing files
-          fail_on_unmatched_files: false
+          npm run electron:build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
-        timeout-minutes: 5
         with:
           name: bitbon-${{ matrix.platform }}-${{ matrix.arch }}
-          path: ${{ github.workspace }}/release/
-          if-no-files-found: warn  # Change from error to warn to handle empty releases 
+          path: release/
+          if-no-files-found: warn
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          fail_on_unmatched_files: false 
