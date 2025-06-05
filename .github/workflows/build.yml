@@ -35,9 +35,15 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           release: ${{ startsWith(github.ref, 'refs/tags/v') }}
-          mac_certs: ${{ secrets.mac_certs }}
-          mac_certs_password: ${{ secrets.mac_certs_password }}
-          windows_certs: ${{ secrets.windows_certs }}
-          windows_certs_password: ${{ secrets.windows_certs_password }}
+          # Skip code signing for now
+          mac_certs: ""
+          mac_certs_password: ""
+          windows_certs: ""
+          windows_certs_password: ""
         env:
-          GH_TOKEN: ${{ secrets.github_token }} 
+          GH_TOKEN: ${{ secrets.github_token }}
+          # Skip code signing on macOS
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # Skip code signing on Windows
+          CSC_LINK: ""
+          CSC_KEY_PASSWORD: "" 
