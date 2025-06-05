@@ -54,6 +54,8 @@ jobs:
           ls -la
           echo "\nClient directory:"
           ls -la client
+          echo "\nClient dist directory:"
+          ls -la client/dist || echo "Client dist directory not found"
           echo "\nBuild directory:"
           ls -la build || echo "Build directory not found"
           echo "\nPublic directory:"
@@ -67,9 +69,12 @@ jobs:
         run: |
           rm -rf node_modules/.cache
           rm -rf release
+          rm -rf build
           npm run electron:build
           echo "\nAfter build - Release directory:"
           ls -la release || echo "Release directory not found"
+          echo "\nBuild directory contents:"
+          ls -la build || echo "Build directory not found"
 
       - name: Debug build output
         run: |
@@ -79,6 +84,10 @@ jobs:
           ls -la release || echo "Release directory not found"
           echo "\nBuild directory contents:"
           ls -la build || echo "Build directory not found"
+          if [ -d "release" ]; then
+            echo "\nRelease directory details:"
+            find release -type f -ls
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

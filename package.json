@@ -21,7 +21,7 @@
     "db:push": "drizzle-kit push",
     "electron:dev": "NODE_ENV=development electron .",
     "electron:prepare": "rm -rf build && mkdir -p build && cp -r dist electron package.json package-lock.json public build/ && cd build && npm install --omit=dev && cd ..",
-    "electron:build": "npm run build && npm run electron:prepare && cd build && npx electron-builder --linux --x64 --publish=never && cd ..",
+    "electron:build": "npm run build && npm run electron:prepare && cd build && cp -r ../client/dist . && npx electron-builder --linux --x64 --publish=never && cd ..",
     "electron:start": "NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --publish=never",
@@ -31,9 +31,9 @@
     "appId": "com.bitbon.app",
     "productName": "BitBon",
     "directories": {
-      "output": "release",
+      "output": "../release",
       "buildResources": "public",
-      "app": "build"
+      "app": "."
     },
     "files": [
       "dist/**/*",
@@ -63,7 +63,8 @@
       "icon": "public/icon.png",
       "category": "Finance",
       "maintainer": "Noel George",
-      "vendor": "BitBon"
+      "vendor": "BitBon",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": true,
