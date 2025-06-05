@@ -30,20 +30,6 @@
   "build": {
     "appId": "com.bitbon.app",
     "productName": "Bitcoin Bonsai Widget",
-    "mac": {
-      "category": "public.app-category.finance",
-      "target": ["dmg", "zip"],
-      "arch": ["arm64", "x64"]
-    },
-    "win": {
-      "target": ["nsis", "portable"],
-      "arch": ["x64"]
-    },
-    "linux": {
-      "target": ["AppImage", "deb"],
-      "category": "Finance",
-      "arch": ["x64", "arm64"]
-    },
     "directories": {
       "output": "release"
     },
@@ -51,6 +37,27 @@
       "dist/**/*",
       "electron/**/*"
     ],
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": ["dmg", "zip"],
+      "darkModeSupport": true,
+      "icon": "public/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "public/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Finance",
+      "icon": "public/icon.png",
+      "artifactName": "${productName}-${version}.${ext}"
+    },
     "nsis": {
       "oneClick": true,
       "perMachine": false,
@@ -58,9 +65,18 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Bitcoin Bonsai Widget",
-      "uninstallDisplayName": "Bitcoin Bonsai Widget",
-      "artifactName": "${productName}-Setup-${version}.${ext}"
-    }
+      "uninstallDisplayName": "Bitcoin Bonsai Widget"
+    },
+    "asar": true,
+    "compression": "maximum",
+    "defaultArch": "x64",
+    "extraResources": [
+      {
+        "from": "public",
+        "to": "public",
+        "filter": ["**/*"]
+      }
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
