@@ -20,7 +20,7 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "electron:dev": "NODE_ENV=development electron .",
-    "electron:build": "npm run build && cd . && electron-builder --publish=never",
+    "electron:build": "npm run build && electron-builder --dir && electron-builder --publish=never",
     "electron:start": "NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --publish=never",
@@ -32,14 +32,14 @@
     "productName": "BitBon",
     "directories": {
       "output": "release",
-      "buildResources": "public",
-      "app": "."
+      "buildResources": "public"
     },
     "files": [
       "dist/**/*",
       "electron/**/*",
       "package.json",
-      "!node_modules/**/*"
+      "!node_modules/**/*",
+      "!**/node_modules/**/*"
     ],
     "extraMetadata": {
       "main": "electron/main.cjs"
@@ -47,16 +47,19 @@
     "mac": {
       "target": ["dmg"],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
-      "icon": "public/icon.icns"
+      "icon": "public/icon.icns",
+      "category": "public.app-category.finance"
     },
     "win": {
       "target": ["nsis"],
-      "artifactName": "${productName}-Setup-${version}.${ext}"
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "icon": "public/icon.ico"
     },
     "linux": {
       "target": ["AppImage"],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
-      "icon": "public/icon.png"
+      "icon": "public/icon.png",
+      "category": "Finance"
     },
     "nsis": {
       "oneClick": true,
