@@ -12,23 +12,50 @@ permissions:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    # Set a timeout for each job
-    timeout-minutes: 30
-
     strategy:
       matrix:
-        os: [ubuntu-latest]
         include:
+          - os: macos-latest
+            platform: mac
+            arch: x64
+            target: dmg
+          - os: macos-latest
+            platform: mac
+            arch: arm64
+            target: dmg
+          - os: windows-latest
+            platform: win
+            arch: x64
+            target: nsis
           - os: ubuntu-latest
             platform: linux
             arch: x64
+            target: AppImage
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Install platform-specific dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-0 \
+            libnotify4 \
+            libnss3 \
+            libxss1 \
+            libxtst6 \
+            xdg-utils \
+            libatspi2.0-0 \
+            libuuid1 \
+            libsecret-1-0 \
+            squashfs-tools
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -66,11 +93,20 @@ jobs:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
           ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
           DEBUG: "electron-builder"
+          # Platform-specific environment variables
+          ELECTRON_BUILDER_ARCH: ${{ matrix.arch }}
+          ELECTRON_BUILDER_TARGET: ${{ matrix.target }}
         run: |
           rm -rf node_modules/.cache
           rm -rf release
           rm -rf build
-          npm run electron:build
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            npm run electron:build:mac
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npm run electron:build:win
+          else
+            npm run electron:build:linux
+          fi
           echo "\nAfter build - Release directory:"
           ls -la release || echo "Release directory not found"
           echo "\nBuild directory contents:"
@@ -89,17 +125,25 @@ jobs:
             find release -type f -ls
           fi
 
+      - name: Get timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: bitbon-${{ matrix.platform }}-${{ matrix.arch }}
+          name: bitbon-${{ matrix.platform }}-${{ matrix.arch }}-${{ steps.timestamp.outputs.timestamp }}
           path: release/
           if-no-files-found: warn
 
       - name: Create Release
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x64'
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*
+          files: |
+            ${{ github.workspace }}/release/*.exe
+            ${{ github.workspace }}/release/*.dmg
+            ${{ github.workspace }}/release/*.AppImage
           draft: false
           prerelease: false
           generate_release_notes: true

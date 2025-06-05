@@ -21,7 +21,9 @@
     "db:push": "drizzle-kit push",
     "electron:dev": "NODE_ENV=development electron .",
     "electron:prepare": "rm -rf build && mkdir -p build && cp -r dist electron package.json package-lock.json public build/ && cd build && npm install --omit=dev && cd ..",
-    "electron:build": "npm run build && npm run electron:prepare && cd build && cp -r ../client/dist . && npx electron-builder --linux --x64 --publish=never && cd ..",
+    "electron:build:mac": "npm run build && npm run electron:prepare && cd build && npx electron-builder --mac --${{ env.ELECTRON_BUILDER_ARCH }} --publish=never && cd ..",
+    "electron:build:win": "npm run build && npm run electron:prepare && cd build && npx electron-builder --win --x64 --publish=never && cd ..",
+    "electron:build:linux": "npm run build && npm run electron:prepare && cd build && cp -r ../client/dist . && npx electron-builder --linux --x64 --publish=never && cd ..",
     "electron:start": "NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --publish=never",
@@ -51,12 +53,15 @@
       "category": "public.app-category.finance",
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "identity": null
+      "identity": null,
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "darkModeSupport": true
     },
     "win": {
       "target": ["nsis"],
       "icon": "public/icon.ico",
-      "requestedExecutionLevel": "asInvoker"
+      "requestedExecutionLevel": "asInvoker",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "linux": {
       "target": ["AppImage"],
@@ -64,14 +69,48 @@
       "category": "Finance",
       "maintainer": "Noel George",
       "vendor": "BitBon",
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "executableName": "bitbon",
+      "desktop": {
+        "Name": "BitBon",
+        "Comment": "A beautiful Bitcoin price widget for your desktop",
+        "Categories": "Finance;Utility;",
+        "StartupWMClass": "BitBon"
+      }
     },
     "nsis": {
       "oneClick": true,
       "perMachine": false,
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "shortcutName": "BitBon",
+      "uninstallDisplayName": "BitBon",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "icon": "public/icon.icns",
+      "iconSize": 128,
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "appImage": {
+      "artifactName": "${productName}-${version}-${arch}.AppImage"
     },
     "asar": true,
     "compression": "normal",
