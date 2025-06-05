@@ -53,14 +53,19 @@ jobs:
 
       - name: Prepare application
         working-directory: ${{ github.workspace }}
+        shell: pwsh
+        if: runner.os == 'Windows'
         run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            if (Test-Path dist) { Remove-Item -Recurse -Force dist }
-            Copy-Item -Path client/dist -Destination dist -Recurse
-          else
-            rm -rf dist
-            cp -r client/dist dist
-          fi
+          if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+          Copy-Item -Path client/dist -Destination dist -Recurse
+
+      - name: Prepare application (Unix)
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        if: runner.os != 'Windows'
+        run: |
+          rm -rf dist
+          cp -r client/dist dist
 
       - name: Install electron dependencies
         working-directory: ${{ github.workspace }}
