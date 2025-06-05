@@ -81,16 +81,29 @@ jobs:
 
       - name: Debug directory structure
         run: |
-          echo "Current directory structure:"
-          ls -la
-          echo "\nClient directory:"
-          ls -la client
-          echo "\nClient dist directory:"
-          ls -la client/dist || echo "Client dist directory not found"
-          echo "\nBuild directory:"
-          ls -la build || echo "Build directory not found"
-          echo "\nPublic directory:"
-          ls -la public || echo "Public directory not found"
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            echo "Current directory structure:"
+            dir
+            echo "\nClient directory:"
+            dir client
+            echo "\nClient dist directory:"
+            dir client\dist 2>nul || echo "Client dist directory not found"
+            echo "\nBuild directory:"
+            dir build 2>nul || echo "Build directory not found"
+            echo "\nPublic directory:"
+            dir public 2>nul || echo "Public directory not found"
+          else
+            echo "Current directory structure:"
+            ls -la
+            echo "\nClient directory:"
+            ls -la client
+            echo "\nClient dist directory:"
+            ls -la client/dist || echo "Client dist directory not found"
+            echo "\nBuild directory:"
+            ls -la build || echo "Build directory not found"
+            echo "\nPublic directory:"
+            ls -la public || echo "Public directory not found"
+          fi
 
       - name: Build installer
         env:
@@ -109,15 +122,28 @@ jobs:
 
       - name: Debug build output
         run: |
-          echo "Final directory structure:"
-          ls -la
-          echo "\nRelease directory contents:"
-          ls -la release || echo "Release directory not found"
-          echo "\nBuild directory contents:"
-          ls -la build || echo "Build directory not found"
-          if [ -d "release" ]; then
-            echo "\nRelease directory details:"
-            find release -type f -ls
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            echo "Final directory structure:"
+            dir
+            echo "\nRelease directory contents:"
+            dir release 2>nul || echo "Release directory not found"
+            echo "\nBuild directory contents:"
+            dir build 2>nul || echo "Build directory not found"
+            if [ -d "release" ]; then
+              echo "\nRelease directory details:"
+              dir /s /b release
+            fi
+          else
+            echo "Final directory structure:"
+            ls -la
+            echo "\nRelease directory contents:"
+            ls -la release || echo "Release directory not found"
+            echo "\nBuild directory contents:"
+            ls -la build || echo "Build directory not found"
+            if [ -d "release" ]; then
+              echo "\nRelease directory details:"
+              find release -type f -ls
+            fi
           fi
 
       - name: Get timestamp
