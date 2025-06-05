@@ -20,7 +20,7 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "electron:dev": "NODE_ENV=development electron .",
-    "electron:prepare": "rm -rf build && mkdir -p build && cp -r dist electron package.json build/ && cp -r public build/",
+    "electron:prepare": "rm -rf build && mkdir -p build && cp -r dist electron package.json package-lock.json build/ && cp -r public build/ && cd build && npm install --production && cd ..",
     "electron:build": "npm run build && npm run electron:prepare && cd build && electron-builder --publish=never",
     "electron:start": "NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
@@ -39,7 +39,9 @@
     "files": [
       "**/*",
       "!node_modules/**/*",
-      "!**/node_modules/**/*"
+      "!**/node_modules/**/*",
+      "!build/**/*",
+      "!release/**/*"
     ],
     "extraMetadata": {
       "main": "electron/main.cjs"

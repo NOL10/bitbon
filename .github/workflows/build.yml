@@ -38,11 +38,15 @@ jobs:
           if [ "${{ runner.os }}" == "Windows" ]; then
             if (Test-Path build) { Remove-Item -Recurse -Force build }
             New-Item -ItemType Directory -Force -Path build
-            Copy-Item -Path dist,electron,package.json,public -Destination build -Recurse
+            Copy-Item -Path dist,electron,package.json,package-lock.json,public -Destination build -Recurse
+            Set-Location build
+            npm install --production
+            Set-Location ..
           else
             rm -rf build
             mkdir -p build
-            cp -r dist electron package.json public build/
+            cp -r dist electron package.json package-lock.json public build/
+            cd build && npm install --production && cd ..
           fi
 
       - name: Build installers
@@ -52,12 +56,16 @@ jobs:
           if [ "${{ runner.os }}" == "Windows" ]; then
             echo "Build directory contents:"
             dir
+            echo "Node modules:"
+            dir node_modules
           else
             echo "Build directory contents:"
             ls -la
+            echo "Node modules:"
+            ls -la node_modules
           fi
           # Run the build command
-          npm run electron:build
+          electron-builder --publish=never
         env:
           # Skip code signing
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
