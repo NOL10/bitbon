@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -16,6 +20,8 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -109,6 +115,18 @@ jobs:
             echo "platform=linux" >> $GITHUB_OUTPUT
             echo "arch=x64" >> $GITHUB_OUTPUT
           fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          files: |
+            ${{ github.workspace }}/release/*.exe
+            ${{ github.workspace }}/release/*.dmg
+            ${{ github.workspace }}/release/*.AppImage
+          draft: false
+          prerelease: false
+          generate_release_notes: true
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
