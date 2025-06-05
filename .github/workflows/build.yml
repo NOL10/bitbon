@@ -58,6 +58,8 @@ jobs:
         run: |
           if (Test-Path dist) { Remove-Item -Recurse -Force dist }
           Copy-Item -Path client/dist -Destination dist -Recurse
+          Copy-Item -Path electron -Destination . -Recurse -Force
+          Copy-Item -Path public -Destination . -Recurse -Force
 
       - name: Prepare application (Unix)
         working-directory: ${{ github.workspace }}
@@ -66,6 +68,8 @@ jobs:
         run: |
           rm -rf dist
           cp -r client/dist dist
+          cp -r electron .
+          cp -r public .
 
       - name: Install electron dependencies
         working-directory: ${{ github.workspace }}
@@ -80,12 +84,14 @@ jobs:
             dir
             dir dist
             dir electron
+            dir public
             dir node_modules
             type package.json | findstr electron
           else
             ls -la
             ls -la dist
             ls -la electron
+            ls -la public
             ls -la node_modules
             grep electron package.json
           fi
@@ -94,15 +100,15 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           if [ "${{ runner.os }}" == "Windows" ]; then
-            npx electron-builder --win --x64 --publish=never --config.asar=true
+            npx electron-builder --win --x64 --publish=never
           elif [ "${{ runner.os }}" == "macOS" ]; then
             if [ "${{ matrix.arch }}" == "arm64" ]; then
-              npx electron-builder --mac --arm64 --publish=never --config.asar=true
+              npx electron-builder --mac --arm64 --publish=never
             else
-              npx electron-builder --mac --x64 --publish=never --config.asar=true
+              npx electron-builder --mac --x64 --publish=never
             fi
           else
-            npx electron-builder --linux --x64 --publish=never --config.asar=true
+            npx electron-builder --linux --x64 --publish=never
           fi
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"

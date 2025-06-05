@@ -33,8 +33,7 @@
     "directories": {
       "output": "release",
       "buildResources": "public",
-      "app": ".",
-      "dist": "dist"
+      "app": "."
     },
     "files": [
       "dist/**/*",
