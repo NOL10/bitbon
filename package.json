@@ -21,7 +21,7 @@
     "db:push": "drizzle-kit push",
     "electron:dev": "NODE_ENV=development electron .",
     "electron:prepare": "rm -rf build && mkdir -p build && cp -r dist electron package.json package-lock.json public build/ && cd build && npm install --omit=dev && cd ..",
-    "electron:build": "npm run build && npm run electron:prepare && cd build && npx electron-builder --publish=never",
+    "electron:build": "npm run build && npm run electron:prepare && cd build && npx electron-builder --linux --x64 --publish=never && cd ..",
     "electron:start": "NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --publish=never",
@@ -32,7 +32,8 @@
     "productName": "BitBon",
     "directories": {
       "output": "release",
-      "buildResources": "public"
+      "buildResources": "public",
+      "app": "build"
     },
     "files": [
       "dist/**/*",
