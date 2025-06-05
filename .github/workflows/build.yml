@@ -79,31 +79,35 @@ jobs:
       - name: Build client
         run: cd client && npm run build && cd ..
 
-      - name: Debug directory structure
+      - name: Debug directory structure (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            echo "Current directory structure:"
-            dir
-            echo "\nClient directory:"
-            dir client
-            echo "\nClient dist directory:"
-            dir client\dist 2>nul || echo "Client dist directory not found"
-            echo "\nBuild directory:"
-            dir build 2>nul || echo "Build directory not found"
-            echo "\nPublic directory:"
-            dir public 2>nul || echo "Public directory not found"
-          else
-            echo "Current directory structure:"
-            ls -la
-            echo "\nClient directory:"
-            ls -la client
-            echo "\nClient dist directory:"
-            ls -la client/dist || echo "Client dist directory not found"
-            echo "\nBuild directory:"
-            ls -la build || echo "Build directory not found"
-            echo "\nPublic directory:"
-            ls -la public || echo "Public directory not found"
-          fi
+          Write-Host "Current directory structure:"
+          Get-ChildItem
+          Write-Host "`nClient directory:"
+          Get-ChildItem -Path client -ErrorAction SilentlyContinue
+          Write-Host "`nClient dist directory:"
+          Get-ChildItem -Path client\dist -ErrorAction SilentlyContinue || Write-Host "Client dist directory not found"
+          Write-Host "`nBuild directory:"
+          Get-ChildItem -Path build -ErrorAction SilentlyContinue || Write-Host "Build directory not found"
+          Write-Host "`nPublic directory:"
+          Get-ChildItem -Path public -ErrorAction SilentlyContinue || Write-Host "Public directory not found"
+
+      - name: Debug directory structure (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          echo "Current directory structure:"
+          ls -la
+          echo "\nClient directory:"
+          ls -la client
+          echo "\nClient dist directory:"
+          ls -la client/dist || echo "Client dist directory not found"
+          echo "\nBuild directory:"
+          ls -la build || echo "Build directory not found"
+          echo "\nPublic directory:"
+          ls -la public || echo "Public directory not found"
 
       - name: Build installer
         env:
@@ -120,30 +124,34 @@ jobs:
           echo "\nBuild directory contents:"
           ls -la build || echo "Build directory not found"
 
-      - name: Debug build output
+      - name: Debug build output (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            echo "Final directory structure:"
-            dir
-            echo "\nRelease directory contents:"
-            dir release 2>nul || echo "Release directory not found"
-            echo "\nBuild directory contents:"
-            dir build 2>nul || echo "Build directory not found"
-            if [ -d "release" ]; then
-              echo "\nRelease directory details:"
-              dir /s /b release
-            fi
-          else
-            echo "Final directory structure:"
-            ls -la
-            echo "\nRelease directory contents:"
-            ls -la release || echo "Release directory not found"
-            echo "\nBuild directory contents:"
-            ls -la build || echo "Build directory not found"
-            if [ -d "release" ]; then
-              echo "\nRelease directory details:"
-              find release -type f -ls
-            fi
+          Write-Host "Final directory structure:"
+          Get-ChildItem
+          Write-Host "`nRelease directory contents:"
+          Get-ChildItem -Path release -ErrorAction SilentlyContinue || Write-Host "Release directory not found"
+          Write-Host "`nBuild directory contents:"
+          Get-ChildItem -Path build -ErrorAction SilentlyContinue || Write-Host "Build directory not found"
+          if (Test-Path release) {
+            Write-Host "`nRelease directory details:"
+            Get-ChildItem -Path release -Recurse
+          }
+
+      - name: Debug build output (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          echo "Final directory structure:"
+          ls -la
+          echo "\nRelease directory contents:"
+          ls -la release || echo "Release directory not found"
+          echo "\nBuild directory contents:"
+          ls -la build || echo "Build directory not found"
+          if [ -d "release" ]; then
+            echo "\nRelease directory details:"
+            find release -type f -ls
           fi
 
       - name: Get timestamp

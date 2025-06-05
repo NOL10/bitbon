@@ -1,0 +1,32 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pot base -->
+  <rect x="30" y="80" width="40" height="15" fill="#1f5d1f" />
+  <!-- Pot top - wider than base -->
+  <rect x="25" y="70" width="50" height="10" fill="#1f5d1f" />
+  <!-- Bitcoin logo -->
+  <g fill="#856617">
+    <rect x="47" y="77" width="2" height="15" />
+    <rect x="42" y="82" width="12" height="2" />
+    <rect x="42" y="77" width="12" height="2" />
+    <rect x="42" y="87" width="12" height="2" />
+    <rect x="52" y="77" width="2" height="12" />
+  </g>
+  
+  <!-- 20% Bonsai Stem - taller -->
+  <rect x="49" y="35" width="2" height="35" fill="#2e8c2e" />
+  
+  <!-- Branch left -->
+  <rect x="35" y="50" width="14" height="2" fill="#2e8c2e" />
+  <rect x="35" y="50" width="2" height="8" fill="#2e8c2e" />
+  
+  <!-- Branch right -->
+  <rect x="51" y="45" width="14" height="2" fill="#2e8c2e" />
+  <rect x="63" y="45" width="2" height="8" fill="#2e8c2e" />
+  
+  <!-- Medium leaves -->
+  <circle cx="50" cy="25" r="10" fill="#2e8c2e" />
+  <circle cx="35" cy="45" r="7" fill="#2e8c2e" />
+  <circle cx="65" cy="40" r="7" fill="#2e8c2e" />
+  <circle cx="40" cy="30" r="6" fill="#2e8c2e" />
+  <circle cx="60" cy="30" r="6" fill="#2e8c2e" />
+</svg>
