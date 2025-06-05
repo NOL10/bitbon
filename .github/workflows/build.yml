@@ -140,6 +140,28 @@ jobs:
           ls -la node_modules
           grep electron package.json
 
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-0 \
+            libnotify4 \
+            libnss3 \
+            libxss1 \
+            libxtst6 \
+            xdg-utils \
+            libatspi2.0-0 \
+            libuuid1 \
+            libsecret-1-0 \
+            rpm \
+            dpkg \
+            fakeroot \
+            dpkg-dev \
+            rpm-build \
+            rpmdevtools \
+            desktop-file-utils
+
       - name: Build installers (Windows)
         working-directory: ${{ github.workspace }}
         timeout-minutes: 15
@@ -183,7 +205,36 @@ jobs:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
           ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
           ELECTRON_BUILDER_CACHE: "false"
-        run: npx electron-builder --linux --x64 --publish=never
+          ELECTRON_BUILDER_APPIMAGE: "true"
+          ELECTRON_BUILDER_DEB: "true"
+          ELECTRON_BUILDER_LINUX_DEB: "true"
+          ELECTRON_BUILDER_LINUX_APPIMAGE: "true"
+          ELECTRON_BUILDER_LINUX_TARGET: "AppImage deb"
+          ELECTRON_BUILDER_LINUX_ARCH: "x64"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_ARCH: "x64"
+          ELECTRON_BUILDER_LINUX_DEB_ARCH: "amd64"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_ARTIFACT_NAME: "BitBon-${version}-${arch}.AppImage"
+          ELECTRON_BUILDER_LINUX_DEB_ARTIFACT_NAME: "BitBon-${version}-${arch}.deb"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_CATEGORIES: "Finance;Utility;"
+          ELECTRON_BUILDER_LINUX_DEB_CATEGORIES: "Finance;Utility;"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_NAME: "BitBon"
+          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_NAME: "BitBon"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_COMMENT: "A beautiful Bitcoin price widget for your desktop"
+          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_COMMENT: "A beautiful Bitcoin price widget for your desktop"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_STARTUPWMCLASS: "BitBon"
+          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_STARTUPWMCLASS: "BitBon"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_MAINTAINER: "Noel George"
+          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_MAINTAINER: "Noel George"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_VENDOR: "BitBon"
+          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_VENDOR: "BitBon"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_EXECUTABLE_NAME: "bitbon"
+          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_EXECUTABLE_NAME: "bitbon"
+          ELECTRON_BUILDER_LINUX_APPIMAGE_DESKTOP_DEPENDS: "libgtk-3-0,libnotify4,libnss3,libxss1,libxtst6,xdg-utils,libatspi2.0-0,libuuid1,libsecret-1-0"
+          ELECTRON_BUILDER_LINUX_DEB_DESKTOP_DEPENDS: "libgtk-3-0,libnotify4,libnss3,libxss1,libxtst6,xdg-utils,libatspi2.0-0,libuuid1,libsecret-1-0"
+        run: |
+          rm -rf node_modules/.cache
+          rm -rf release
+          npx electron-builder --linux --x64 --publish=never --config.compression=normal
 
       - name: Verify artifacts (Windows)
         working-directory: ${{ github.workspace }}

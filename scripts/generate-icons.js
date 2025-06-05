@@ -44,10 +44,20 @@ async function generateIcons() {
     fs.mkdirSync(publicDir, { recursive: true });
   }
 
-  // Generate PNG (for Linux)
+  // Generate PNG (for Linux) with proper metadata
   await sharp(Buffer.from(svg))
     .resize(512, 512)
-    .png()
+    .png({
+      quality: 100,
+      compressionLevel: 9,
+      palette: true,
+      colors: 256
+    })
+    .withMetadata({
+      orientation: 1,
+      density: 72,
+      chromaSubsampling: '4:4:4'
+    })
     .toFile(path.join(publicDir, 'icon.png'));
 
   // Generate ICO (for Windows) with multiple sizes
@@ -56,7 +66,12 @@ async function generateIcons() {
     sizes.map(size =>
       sharp(Buffer.from(svg))
         .resize(size, size)
-        .png()
+        .png({
+          quality: 100,
+          compressionLevel: 9,
+          palette: true,
+          colors: 256
+        })
         .toBuffer()
     )
   );
@@ -70,7 +85,17 @@ async function generateIcons() {
   // Generate ICNS (for macOS)
   await sharp(Buffer.from(svg))
     .resize(1024, 1024)
-    .png()
+    .png({
+      quality: 100,
+      compressionLevel: 9,
+      palette: true,
+      colors: 256
+    })
+    .withMetadata({
+      orientation: 1,
+      density: 72,
+      chromaSubsampling: '4:4:4'
+    })
     .toFile(path.join(publicDir, 'icon.icns'));
 
   console.log('Icons generated successfully!');

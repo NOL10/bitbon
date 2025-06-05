@@ -67,7 +67,30 @@
       "icon": "public/icon.png",
       "category": "Finance",
       "maintainer": "Noel George",
-      "vendor": "BitBon"
+      "vendor": "BitBon",
+      "executableName": "bitbon",
+      "desktop": {
+        "Name": "BitBon",
+        "Comment": "A beautiful Bitcoin price widget for your desktop",
+        "Categories": "Finance;Utility;",
+        "StartupWMClass": "BitBon"
+      },
+      "deb": {
+        "depends": [
+          "libgtk-3-0",
+          "libnotify4",
+          "libnss3",
+          "libxss1",
+          "libxtst6",
+          "xdg-utils",
+          "libatspi2.0-0",
+          "libuuid1",
+          "libsecret-1-0"
+        ]
+      },
+      "appImage": {
+        "artifactName": "${productName}-${version}-${arch}.AppImage"
+      }
     },
     "nsis": {
       "oneClick": true,
@@ -79,13 +102,14 @@
       "uninstallDisplayName": "BitBon"
     },
     "asar": true,
-    "compression": "maximum",
+    "compression": "normal",
     "removePackageScripts": true,
     "removePackageKeywords": true,
     "extends": null,
     "forceCodeSigning": false,
     "afterSign": null,
-    "afterPack": null
+    "afterPack": null,
+    "publish": null
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
