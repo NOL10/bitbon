@@ -50,11 +50,22 @@ async function generateIcons() {
     .png()
     .toFile(path.join(publicDir, 'icon.png'));
 
-  // Generate ICO (for Windows) - using PNG as base
-  await sharp(Buffer.from(svg))
-    .resize(256, 256)
-    .png()
-    .toFile(path.join(publicDir, 'icon.ico'));
+  // Generate ICO (for Windows) with multiple sizes
+  const sizes = [16, 32, 48, 64, 128, 256];
+  const pngBuffers = await Promise.all(
+    sizes.map(size =>
+      sharp(Buffer.from(svg))
+        .resize(size, size)
+        .png()
+        .toBuffer()
+    )
+  );
+
+  // Create ICO file with multiple sizes
+  const icoPath = path.join(publicDir, 'icon.ico');
+  await sharp(pngBuffers[0])
+    .joinChannel(pngBuffers)
+    .toFile(icoPath);
 
   // Generate ICNS (for macOS)
   await sharp(Buffer.from(svg))

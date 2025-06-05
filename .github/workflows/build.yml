@@ -76,6 +76,11 @@ jobs:
           npm install --ignore-scripts
           cd client && npm install --ignore-scripts && cd ..
 
+      - name: Generate icons
+        working-directory: ${{ github.workspace }}
+        timeout-minutes: 5
+        run: npm run generate-icons
+
       - name: Build client
         working-directory: ${{ github.workspace }}
         timeout-minutes: 10
