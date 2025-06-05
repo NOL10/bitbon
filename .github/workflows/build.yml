@@ -19,18 +19,22 @@ jobs:
             platform: mac
             arch: x64
             target: dmg
+            build_script: electron:build:mac
           - os: macos-latest
             platform: mac
             arch: arm64
             target: dmg
+            build_script: electron:build:mac
           - os: windows-latest
             platform: win
             arch: x64
             target: nsis
+            build_script: electron:build:win
           - os: ubuntu-latest
             platform: linux
             arch: x64
             target: AppImage
+            build_script: electron:build:linux
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -100,13 +104,7 @@ jobs:
           rm -rf node_modules/.cache
           rm -rf release
           rm -rf build
-          if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            npm run electron:build:mac
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npm run electron:build:win
-          else
-            npm run electron:build:linux
-          fi
+          npm run ${{ matrix.build_script }}
           echo "\nAfter build - Release directory:"
           ls -la release || echo "Release directory not found"
           echo "\nBuild directory contents:"
