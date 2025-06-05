@@ -29,33 +29,29 @@
   },
   "build": {
     "appId": "com.bitbon.app",
-    "productName": "Bitcoin Bonsai Widget",
+    "productName": "BitBon",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "public"
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "package.json"
     ],
     "mac": {
-      "category": "public.app-category.finance",
-      "target": ["dmg", "zip"],
-      "darkModeSupport": true,
-      "icon": "public/icon.icns",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
+      "target": ["dmg"],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "icon": "public/icon.icns"
     },
     "win": {
-      "target": ["nsis", "portable"],
+      "target": ["nsis"],
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
-      "category": "Finance",
-      "icon": "public/icon.png",
-      "artifactName": "${productName}-${version}.${ext}"
+      "target": ["AppImage"],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "icon": "public/icon.png"
     },
     "nsis": {
       "oneClick": true,
