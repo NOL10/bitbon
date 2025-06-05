@@ -42,7 +42,7 @@ jobs:
           Copy-Item -Path dist,electron,package.json,package-lock.json,public -Destination build -Recurse
           Set-Location build
           npm install --omit=dev
-          npm install electron@36.2.0 --save-exact
+          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact
           Set-Location ..
 
       - name: Prepare build directory (Unix)
@@ -54,7 +54,7 @@ jobs:
           cp -r dist electron package.json package-lock.json public build/
           cd build
           npm install --omit=dev
-          npm install electron@36.2.0 --save-exact
+          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact
           cd ..
 
       - name: Build installers (Windows)
@@ -68,7 +68,7 @@ jobs:
           Get-ChildItem node_modules
           Write-Host "Package.json:"
           Get-Content package.json | Select-String "electron"
-          electron-builder --publish=never
+          npx electron-builder --publish=never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           CSC_LINK: ""
@@ -85,7 +85,7 @@ jobs:
           ls -la node_modules
           echo "Package.json electron version:"
           grep electron package.json
-          electron-builder --publish=never
+          npx electron-builder --publish=never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           CSC_LINK: ""
