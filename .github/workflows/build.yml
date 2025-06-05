@@ -65,18 +65,42 @@ jobs:
           npm rebuild --build-from-source
           cd ..
 
-      - name: Build installers (Windows)
+      - name: Verify build directory (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         working-directory: ${{ github.workspace }}
         run: |
+          Write-Host "Current directory:"
+          Get-Location
           Write-Host "Build directory contents:"
           Get-ChildItem build
-          Write-Host "Node modules:"
+          Write-Host "Build/node_modules contents:"
           Get-ChildItem build/node_modules
-          Write-Host "Package.json:"
+          Write-Host "Build/package.json:"
           Get-Content build/package.json | Select-String "electron"
-          cd build
+
+      - name: Verify build directory (Unix)
+        if: runner.os != 'Windows'
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Build directory contents:"
+          ls -la build
+          echo "Build/node_modules contents:"
+          ls -la build/node_modules
+          echo "Build/package.json electron version:"
+          grep electron build/package.json
+
+      - name: Build installers (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: ${{ github.workspace }}/build
+        run: |
+          Write-Host "Current directory:"
+          Get-Location
+          Write-Host "Directory contents:"
+          Get-ChildItem
           npx electron-builder --publish=never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -86,15 +110,12 @@ jobs:
 
       - name: Build installers (Unix)
         if: runner.os != 'Windows'
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/build
         run: |
-          echo "Build directory contents:"
-          ls -la build
-          echo "Node modules:"
-          ls -la build/node_modules
-          echo "Package.json electron version:"
-          grep electron build/package.json
-          cd build
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
           npx electron-builder --publish=never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
