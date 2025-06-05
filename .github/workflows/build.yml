@@ -109,7 +109,26 @@ jobs:
           echo "\nPublic directory:"
           ls -la public || echo "Public directory not found"
 
-      - name: Build installer
+      - name: Build installer (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        env:
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+          ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
+          DEBUG: "electron-builder"
+        run: |
+          Remove-Item -Path node_modules\.cache -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path release -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path build -Recurse -Force -ErrorAction SilentlyContinue
+          npm run ${{ matrix.build_script }}
+          Write-Host "`nAfter build - Release directory:"
+          Get-ChildItem -Path release -ErrorAction SilentlyContinue || Write-Host "Release directory not found"
+          Write-Host "`nBuild directory contents:"
+          Get-ChildItem -Path build -ErrorAction SilentlyContinue || Write-Host "Build directory not found"
+
+      - name: Build installer (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
         env:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
           ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
