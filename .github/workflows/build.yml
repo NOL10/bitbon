@@ -46,17 +46,21 @@ jobs:
           # Don't fetch submodules
           submodules: false
 
-      - name: Clean workspace
+      - name: Clean workspace (Windows)
         working-directory: ${{ github.workspace }}
         timeout-minutes: 5
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
-            if (Test-Path dist) { Remove-Item -Recurse -Force dist }
-            if (Test-Path release) { Remove-Item -Recurse -Force release }
-          else
-            rm -rf node_modules dist release
-          fi
+          if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
+          if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+          if (Test-Path release) { Remove-Item -Recurse -Force release }
+
+      - name: Clean workspace (Unix)
+        working-directory: ${{ github.workspace }}
+        timeout-minutes: 5
+        if: runner.os != 'Windows'
+        run: rm -rf node_modules dist release
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -106,41 +110,36 @@ jobs:
           npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
           npm rebuild --build-from-source
 
-      - name: Verify setup
+      - name: Verify setup (Windows)
         working-directory: ${{ github.workspace }}
         timeout-minutes: 5
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            dir
-            dir dist
-            dir electron
-            dir public
-            dir node_modules
-            type package.json | findstr electron
-          else
-            ls -la
-            ls -la dist
-            ls -la electron
-            ls -la public
-            ls -la node_modules
-            grep electron package.json
-          fi
+          Get-ChildItem
+          Get-ChildItem dist
+          Get-ChildItem electron
+          Get-ChildItem public
+          Get-ChildItem node_modules
+          Get-Content package.json | Select-String electron
 
-      - name: Build installers
+      - name: Verify setup (Unix)
+        working-directory: ${{ github.workspace }}
+        timeout-minutes: 5
+        if: runner.os != 'Windows'
+        run: |
+          ls -la
+          ls -la dist
+          ls -la electron
+          ls -la public
+          ls -la node_modules
+          grep electron package.json
+
+      - name: Build installers (Windows)
         working-directory: ${{ github.workspace }}
         timeout-minutes: 15
-        run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            npx electron-builder --win --x64 --publish=never --config.win.signAndEditExecutable=false --config.win.verifyUpdateCodeSignature=false
-          elif [ "${{ runner.os }}" = "macOS" ]; then
-            if [ "${{ matrix.arch }}" = "arm64" ]; then
-              npx electron-builder --mac --arm64 --publish=never --config.mac.identity=null
-            else
-              npx electron-builder --mac --x64 --publish=never --config.mac.identity=null
-            fi
-          else
-            npx electron-builder --linux --x64 --publish=never
-          fi
+        if: runner.os == 'Windows'
+        shell: pwsh
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           CSC_LINK: ""
@@ -148,16 +147,51 @@ jobs:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
           ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
           ELECTRON_BUILDER_CACHE: "false"
+        run: npx electron-builder --win --x64 --publish=never --config.win.signAndEditExecutable=false --config.win.verifyUpdateCodeSignature=false
 
-      - name: Verify artifacts
+      - name: Build installers (macOS)
+        working-directory: ${{ github.workspace }}
+        timeout-minutes: 15
+        if: runner.os == 'macOS'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_LINK: ""
+          CSC_KEY_PASSWORD: ""
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+          ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
+          ELECTRON_BUILDER_CACHE: "false"
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            npx electron-builder --mac --arm64 --publish=never --config.mac.identity=null
+          else
+            npx electron-builder --mac --x64 --publish=never --config.mac.identity=null
+          fi
+
+      - name: Build installers (Linux)
+        working-directory: ${{ github.workspace }}
+        timeout-minutes: 15
+        if: runner.os == 'Linux'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_LINK: ""
+          CSC_KEY_PASSWORD: ""
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+          ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
+          ELECTRON_BUILDER_CACHE: "false"
+        run: npx electron-builder --linux --x64 --publish=never
+
+      - name: Verify artifacts (Windows)
         working-directory: ${{ github.workspace }}
         timeout-minutes: 5
-        run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            dir release
-          else
-            ls -la release
-          fi
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Get-ChildItem release
+
+      - name: Verify artifacts (Unix)
+        working-directory: ${{ github.workspace }}
+        timeout-minutes: 5
+        if: runner.os != 'Windows'
+        run: ls -la release
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
