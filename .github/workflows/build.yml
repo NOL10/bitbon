@@ -66,14 +66,15 @@ jobs:
       - name: Build installers (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        working-directory: ${{ github.workspace }}/build
+        working-directory: ${{ github.workspace }}
         run: |
           Write-Host "Build directory contents:"
-          Get-ChildItem
+          Get-ChildItem build
           Write-Host "Node modules:"
-          Get-ChildItem node_modules
+          Get-ChildItem build/node_modules
           Write-Host "Package.json:"
-          Get-Content package.json | Select-String "electron"
+          Get-Content build/package.json | Select-String "electron"
+          cd build
           npx electron-builder --publish=never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -83,14 +84,15 @@ jobs:
 
       - name: Build installers (Unix)
         if: runner.os != 'Windows'
-        working-directory: ${{ github.workspace }}/build
+        working-directory: ${{ github.workspace }}
         run: |
           echo "Build directory contents:"
-          ls -la
+          ls -la build
           echo "Node modules:"
-          ls -la node_modules
+          ls -la build/node_modules
           echo "Package.json electron version:"
-          grep electron package.json
+          grep electron build/package.json
+          cd build
           npx electron-builder --publish=never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"

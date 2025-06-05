@@ -34,7 +34,7 @@
     "directories": {
       "output": "../release",
       "buildResources": "public",
-      "app": "."
+      "app": "build"
     },
     "files": [
       "**/*",
