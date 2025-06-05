@@ -57,9 +57,27 @@ jobs:
           # Set the correct path for electron-builder
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
 
+      - name: Get platform info
+        id: platform
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            echo "platform=win" >> $GITHUB_OUTPUT
+            echo "arch=x64" >> $GITHUB_OUTPUT
+          elif [ "${{ runner.os }}" == "macOS" ]; then
+            echo "platform=mac" >> $GITHUB_OUTPUT
+            if [ "${{ runner.arch }}" == "arm64" ]; then
+              echo "arch=arm64" >> $GITHUB_OUTPUT
+            else
+              echo "arch=x64" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "platform=linux" >> $GITHUB_OUTPUT
+            echo "arch=x64" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
-          name: installers-${{ matrix.os }}
+          name: bitbon-${{ steps.platform.outputs.platform }}-${{ steps.platform.outputs.arch }}
           path: ${{ github.workspace }}/release/
           if-no-files-found: error 
