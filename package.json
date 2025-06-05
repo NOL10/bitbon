@@ -33,7 +33,8 @@
     "directories": {
       "output": "release",
       "buildResources": "public",
-      "app": "."
+      "app": ".",
+      "dist": "dist"
     },
     "files": [
       "dist/**/*",
@@ -81,7 +82,8 @@
     "asar": true,
     "compression": "maximum",
     "removePackageScripts": true,
-    "removePackageKeywords": true
+    "removePackageKeywords": true,
+    "extends": null
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
