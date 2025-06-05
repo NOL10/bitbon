@@ -58,8 +58,7 @@ jobs:
         run: |
           if (Test-Path dist) { Remove-Item -Recurse -Force dist }
           Copy-Item -Path client/dist -Destination dist -Recurse
-          Copy-Item -Path electron -Destination . -Recurse -Force
-          Copy-Item -Path public -Destination . -Recurse -Force
+          if (-not (Test-Path public)) { Copy-Item -Path client/public -Destination public -Recurse -Force }
 
       - name: Prepare application (Unix)
         working-directory: ${{ github.workspace }}
@@ -68,8 +67,9 @@ jobs:
         run: |
           rm -rf dist
           cp -r client/dist dist
-          cp -r electron .
-          cp -r public .
+          if [ ! -d "public" ]; then
+            cp -r client/public .
+          fi
 
       - name: Install electron dependencies
         working-directory: ${{ github.workspace }}
