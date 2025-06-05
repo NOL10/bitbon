@@ -74,10 +74,12 @@
       "artifactName": "${productName}-${version}-${arch}.${ext}",
       "executableName": "bitbon",
       "desktop": {
-        "Name": "BitBon",
-        "Comment": "A beautiful Bitcoin price widget for your desktop",
-        "Categories": "Finance;Utility;",
-        "StartupWMClass": "BitBon"
+        "entry": {
+          "Name": "BitBon",
+          "Comment": "A beautiful Bitcoin price widget for your desktop",
+          "Categories": "Finance;Utility;",
+          "StartupWMClass": "BitBon"
+        }
       }
     },
     "nsis": {
