@@ -35,15 +35,29 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Clean workspace
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
+            if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+            if (Test-Path release) { Remove-Item -Recurse -Force release }
+          else
+            rm -rf node_modules dist release
+          fi
 
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
         working-directory: ${{ github.workspace }}
         run: |
+          npm cache clean --force
           npm install --ignore-scripts
           cd client && npm install --ignore-scripts && cd ..
 
@@ -100,7 +114,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           if [ "${{ runner.os }}" == "Windows" ]; then
-            npx electron-builder --win --x64 --publish=never --config.win.signAndEditExecutable=false
+            npx electron-builder --win --x64 --publish=never --config.win.signAndEditExecutable=false --config.win.verifyUpdateCodeSignature=false
           elif [ "${{ runner.os }}" == "macOS" ]; then
             if [ "${{ matrix.arch }}" == "arm64" ]; then
               npx electron-builder --mac --arm64 --publish=never --config.mac.identity=null
@@ -116,6 +130,7 @@ jobs:
           CSC_KEY_PASSWORD: ""
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
           ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
+          ELECTRON_BUILDER_CACHE: "false"
 
       - name: Verify artifacts
         working-directory: ${{ github.workspace }}
