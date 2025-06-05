@@ -49,7 +49,6 @@
     },
     "win": {
       "target": ["nsis", "portable"],
-      "icon": "public/icon.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "linux": {
