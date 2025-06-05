@@ -177,21 +177,30 @@ jobs:
         id: timestamp
         run: echo "timestamp=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
 
-      - name: Upload artifacts
+      - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bitbon-${{ matrix.platform }}-${{ matrix.arch }}-${{ steps.timestamp.outputs.timestamp }}
+          name: bitbon-${{ matrix.platform }}-${{ matrix.arch }}
           path: release/
           if-no-files-found: warn
 
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+
+      - name: List all artifacts
+        run: |
+          ls -R all-artifacts
+
       - name: Create Release
-        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x64'
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            ${{ github.workspace }}/release/*.exe
-            ${{ github.workspace }}/release/*.dmg
-            ${{ github.workspace }}/release/*.AppImage
+          files: all-artifacts/**/*
           draft: false
           prerelease: false
           generate_release_notes: true
