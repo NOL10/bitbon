@@ -31,8 +31,8 @@ jobs:
       - name: Install dependencies
         working-directory: ${{ github.workspace }}
         run: |
-          npm install
-          cd client && npm install && cd ..
+          npm install --ignore-scripts
+          cd client && npm install --ignore-scripts && cd ..
 
       - name: Build client
         working-directory: ${{ github.workspace }}
@@ -47,8 +47,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path build
           Copy-Item -Path dist,electron,package.json,package-lock.json,public -Destination build -Recurse
           Set-Location build
-          npm install --omit=dev
-          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact
+          npm install --ignore-scripts
+          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
+          npm rebuild --build-from-source
           Set-Location ..
 
       - name: Prepare build directory (Unix)
@@ -59,8 +60,9 @@ jobs:
           mkdir -p build
           cp -r dist electron package.json package-lock.json public build/
           cd build
-          npm install --omit=dev
-          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact
+          npm install --ignore-scripts
+          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
+          npm rebuild --build-from-source
           cd ..
 
       - name: Build installers (Windows)
