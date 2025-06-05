@@ -16,6 +16,19 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            platform: mac
+            arch: arm64
+          - os: macos-latest
+            platform: mac
+            arch: x64
+          - os: windows-latest
+            platform: win
+            arch: x64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
 
     steps:
       - name: Check out Git repository
@@ -38,107 +51,76 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: cd client && npm run build && cd ..
 
-      - name: Prepare build directory (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        working-directory: ${{ github.workspace }}
-        run: |
-          if (Test-Path build) { Remove-Item -Recurse -Force build }
-          New-Item -ItemType Directory -Force -Path build
-          Copy-Item -Path dist,electron,package.json,package-lock.json,public -Destination build -Recurse
-          Set-Location build
-          npm install --ignore-scripts
-          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
-          npm rebuild --build-from-source
-          Set-Location ..
-
-      - name: Prepare build directory (Unix)
-        if: runner.os != 'Windows'
+      - name: Create build directory
         working-directory: ${{ github.workspace }}
         run: |
           rm -rf build
           mkdir -p build
           cp -r dist electron package.json package-lock.json public build/
-          cd build
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            mkdir -p build/build
+            echo "Created build/build directory for Windows"
+          fi
+
+      - name: Install build dependencies (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: ${{ github.workspace }}/build
+        run: |
           npm install --ignore-scripts
           npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
           npm rebuild --build-from-source
-          cd ..
+          Write-Host "Installed dependencies in build directory"
 
-      - name: Verify build directory (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        working-directory: ${{ github.workspace }}
-        run: |
-          Write-Host "Current directory:"
-          Get-Location
-          Write-Host "Build directory contents:"
-          Get-ChildItem build
-          Write-Host "Build/node_modules contents:"
-          Get-ChildItem build/node_modules
-          Write-Host "Build/package.json:"
-          Get-Content build/package.json | Select-String "electron"
-
-      - name: Verify build directory (Unix)
-        if: runner.os != 'Windows'
-        working-directory: ${{ github.workspace }}
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Build directory contents:"
-          ls -la build
-          echo "Build/node_modules contents:"
-          ls -la build/node_modules
-          echo "Build/package.json electron version:"
-          grep electron build/package.json
-
-      - name: Build installers (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        working-directory: ${{ github.workspace }}/build
-        run: |
-          Write-Host "Current directory:"
-          Get-Location
-          Write-Host "Directory contents:"
-          Get-ChildItem
-          npx electron-builder --publish=never
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
-          CSC_LINK: ""
-          CSC_KEY_PASSWORD: ""
-          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
-
-      - name: Build installers (Unix)
+      - name: Install build dependencies (Unix)
         if: runner.os != 'Windows'
         working-directory: ${{ github.workspace }}/build
         run: |
-          echo "Current directory:"
-          pwd
-          echo "Directory contents:"
-          ls -la
-          npx electron-builder --publish=never
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
-          CSC_LINK: ""
-          CSC_KEY_PASSWORD: ""
-          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+          npm install --ignore-scripts
+          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
+          npm rebuild --build-from-source
+          echo "Installed dependencies in build directory"
 
-      - name: Get platform info
-        id: platform
+      - name: Verify build setup
+        working-directory: ${{ github.workspace }}/build
         run: |
           if [ "${{ runner.os }}" == "Windows" ]; then
-            echo "platform=win" >> $GITHUB_OUTPUT
-            echo "arch=x64" >> $GITHUB_OUTPUT
+            dir
+            dir node_modules
+            type package.json | findstr electron
+          else
+            ls -la
+            ls -la node_modules
+            grep electron package.json
+          fi
+
+      - name: Build installers
+        working-directory: ${{ github.workspace }}/build
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            npx electron-builder --win --x64 --publish=never
           elif [ "${{ runner.os }}" == "macOS" ]; then
-            echo "platform=mac" >> $GITHUB_OUTPUT
-            if [ "${{ runner.arch }}" == "arm64" ]; then
-              echo "arch=arm64" >> $GITHUB_OUTPUT
+            if [ "${{ matrix.arch }}" == "arm64" ]; then
+              npx electron-builder --mac --arm64 --publish=never
             else
-              echo "arch=x64" >> $GITHUB_OUTPUT
+              npx electron-builder --mac --x64 --publish=never
             fi
           else
-            echo "platform=linux" >> $GITHUB_OUTPUT
-            echo "arch=x64" >> $GITHUB_OUTPUT
+            npx electron-builder --linux --x64 --publish=never
+          fi
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_LINK: ""
+          CSC_KEY_PASSWORD: ""
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+
+      - name: Verify artifacts
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            dir release
+          else
+            ls -la release
           fi
 
       - name: Create Release
@@ -148,14 +130,16 @@ jobs:
           files: |
             ${{ github.workspace }}/release/*.exe
             ${{ github.workspace }}/release/*.dmg
+            ${{ github.workspace }}/release/*.zip
             ${{ github.workspace }}/release/*.AppImage
+            ${{ github.workspace }}/release/*.deb
           draft: false
           prerelease: false
           generate_release_notes: true
 
-      - name: Upload installers
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: bitbon-${{ steps.platform.outputs.platform }}-${{ steps.platform.outputs.arch }}
+          name: bitbon-${{ matrix.platform }}-${{ matrix.arch }}
           path: ${{ github.workspace }}/release/
           if-no-files-found: error 

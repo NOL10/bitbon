@@ -20,8 +20,8 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "electron:dev": "NODE_ENV=development electron .",
-    "electron:prepare": "rm -rf build && mkdir -p build && cp -r dist electron package.json package-lock.json build/ && cp -r public build/ && cd build && npm install --omit=dev && cd ..",
-    "electron:build": "npm run build && npm run electron:prepare && cd build && electron-builder --publish=never",
+    "electron:prepare": "rm -rf build && mkdir -p build && cp -r dist electron package.json package-lock.json public build/ && cd build && npm install --omit=dev && cd ..",
+    "electron:build": "npm run build && npm run electron:prepare && cd build && npx electron-builder --publish=never",
     "electron:start": "NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --publish=never",
@@ -31,36 +31,42 @@
     "appId": "com.bitbon.app",
     "productName": "BitBon",
     "directories": {
-      "output": "../release",
+      "output": "release",
       "buildResources": "public",
       "app": "build"
     },
     "files": [
-      "**/*",
-      "!node_modules/**/*",
-      "!**/node_modules/**/*",
-      "!build/**/*",
-      "!release/**/*"
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "public/**/*"
     ],
     "extraMetadata": {
       "main": "electron/main.cjs"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": ["dmg", "zip"],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
       "icon": "public/icon.icns",
-      "category": "public.app-category.finance"
+      "category": "public.app-category.finance",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
-      "target": ["nsis"],
+      "target": ["nsis", "portable"],
       "artifactName": "${productName}-Setup-${version}.${ext}",
-      "icon": "public/icon.ico"
+      "icon": "public/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": ["AppImage", "deb"],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
       "icon": "public/icon.png",
-      "category": "Finance"
+      "category": "Finance",
+      "maintainer": "Noel George",
+      "vendor": "BitBon"
     },
     "nsis": {
       "oneClick": true,
@@ -73,7 +79,8 @@
     },
     "asar": true,
     "compression": "maximum",
-    "defaultArch": "x64"
+    "removePackageScripts": true,
+    "removePackageKeywords": true
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
