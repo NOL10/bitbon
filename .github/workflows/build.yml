@@ -23,24 +23,34 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+        working-directory: ${{ github.workspace }}
         run: |
           npm install
           cd client && npm install && cd ..
 
       - name: Build client
+        working-directory: ${{ github.workspace }}
         run: cd client && npm run build && cd ..
 
       - name: Build installers
-        run: npm run electron:build
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Ensure we're in the root directory
+          pwd
+          ls -la
+          # Run the build command
+          npm run electron:build
         env:
           # Skip code signing
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           CSC_LINK: ""
           CSC_KEY_PASSWORD: ""
+          # Set the correct path for electron-builder
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
           name: installers-${{ matrix.os }}
-          path: release/
+          path: ${{ github.workspace }}/release/
           if-no-files-found: error 
