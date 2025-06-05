@@ -1,39 +1,43 @@
-name: Build Installers
+name: Build and Release
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:  # Allows manual triggering
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  release:
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
 
     steps:
-      - name: Check out code
+      - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm install
+          cd client && npm install && cd ..
 
-      - name: Build installers
-        run: npm run electron:build
-        env:
-          GH_TOKEN: ''  # Empty token to prevent publishing
+      - name: Build client
+        run: cd client && npm run build && cd ..
 
-      - name: Upload installers
-        uses: actions/upload-artifact@v4
+      - name: Build/Release Electron app
+        uses: samuelmeuli/action-electron-builder@v1
         with:
-          name: installers-${{ matrix.os }}
-          path: release/
-          if-no-files-found: error 
+          github_token: ${{ secrets.github_token }}
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          mac_certs: ${{ secrets.mac_certs }}
+          mac_certs_password: ${{ secrets.mac_certs_password }}
+          windows_certs: ${{ secrets.windows_certs }}
+          windows_certs_password: ${{ secrets.windows_certs_password }}
+        env:
+          GH_TOKEN: ${{ secrets.github_token }} 
