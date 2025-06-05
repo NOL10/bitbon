@@ -24,7 +24,7 @@ jobs:
             platform: mac
             arch: arm64
             target: dmg
-            build_script: electron:build:mac
+            build_script: electron:build:mac:arm64
           - os: windows-latest
             platform: win
             arch: x64
@@ -97,9 +97,6 @@ jobs:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
           ELECTRON_BUILDER_SKIP_CODE_SIGNING: "true"
           DEBUG: "electron-builder"
-          # Platform-specific environment variables
-          ELECTRON_BUILDER_ARCH: ${{ matrix.arch }}
-          ELECTRON_BUILDER_TARGET: ${{ matrix.target }}
         run: |
           rm -rf node_modules/.cache
           rm -rf release
