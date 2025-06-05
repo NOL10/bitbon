@@ -181,7 +181,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bitbon-${{ matrix.platform }}-${{ matrix.arch }}
-          path: release/
+          path: |
+            release/*.dmg
+            release/*.exe
+            release/*.AppImage
           if-no-files-found: warn
 
   release:
@@ -200,7 +203,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: all-artifacts/**/*
+          files: |
+            all-artifacts/**/*.dmg
+            all-artifacts/**/*.exe
+            all-artifacts/**/*.AppImage
           draft: false
           prerelease: false
           generate_release_notes: true
