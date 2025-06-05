@@ -1,7 +1,7 @@
-const sharp = require('sharp');
-const fs = require('fs');
-const path = require('path');
-const { fileURLToPath } = require('url');
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
