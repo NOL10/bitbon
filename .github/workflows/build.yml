@@ -51,38 +51,14 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: cd client && npm run build && cd ..
 
-      - name: Create build directory
+      - name: Install electron dependencies
         working-directory: ${{ github.workspace }}
         run: |
-          rm -rf build
-          mkdir -p build
-          cp -r dist electron package.json package-lock.json public build/
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            mkdir -p build/build
-            echo "Created build/build directory for Windows"
-          fi
-
-      - name: Install build dependencies (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        working-directory: ${{ github.workspace }}/build
-        run: |
-          npm install --ignore-scripts
           npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
           npm rebuild --build-from-source
-          Write-Host "Installed dependencies in build directory"
 
-      - name: Install build dependencies (Unix)
-        if: runner.os != 'Windows'
-        working-directory: ${{ github.workspace }}/build
-        run: |
-          npm install --ignore-scripts
-          npm install electron@36.2.0 electron-builder@26.0.12 --save-dev --save-exact --ignore-scripts
-          npm rebuild --build-from-source
-          echo "Installed dependencies in build directory"
-
-      - name: Verify build setup
-        working-directory: ${{ github.workspace }}/build
+      - name: Verify setup
+        working-directory: ${{ github.workspace }}
         run: |
           if [ "${{ runner.os }}" == "Windows" ]; then
             dir
@@ -95,7 +71,7 @@ jobs:
           fi
 
       - name: Build installers
-        working-directory: ${{ github.workspace }}/build
+        working-directory: ${{ github.workspace }}
         run: |
           if [ "${{ runner.os }}" == "Windows" ]; then
             npx electron-builder --win --x64 --publish=never

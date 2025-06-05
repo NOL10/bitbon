@@ -33,13 +33,14 @@
     "directories": {
       "output": "release",
       "buildResources": "public",
-      "app": "build"
+      "app": "."
     },
     "files": [
       "dist/**/*",
       "electron/**/*",
       "package.json",
-      "public/**/*"
+      "public/**/*",
+      "node_modules/**/*"
     ],
     "extraMetadata": {
       "main": "electron/main.cjs"
