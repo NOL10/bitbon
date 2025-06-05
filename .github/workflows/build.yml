@@ -35,9 +35,18 @@ jobs:
       - name: Build installers
         working-directory: ${{ github.workspace }}
         run: |
-          # Ensure we're in the root directory
-          pwd
-          ls -la
+          # Ensure we're in the root directory and show contents
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            echo "Current directory:"
+            pwd
+            echo "Directory contents:"
+            dir
+          else
+            echo "Current directory:"
+            pwd
+            echo "Directory contents:"
+            ls -la
+          fi
           # Run the build command
           npm run electron:build
         env:
