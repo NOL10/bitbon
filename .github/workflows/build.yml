@@ -32,19 +32,28 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: cd client && npm run build && cd ..
 
-      - name: Build installers
+      - name: Prepare build directory
         working-directory: ${{ github.workspace }}
         run: |
-          # Ensure we're in the root directory and show contents
           if [ "${{ runner.os }}" == "Windows" ]; then
-            echo "Current directory:"
-            pwd
-            echo "Directory contents:"
+            if (Test-Path build) { Remove-Item -Recurse -Force build }
+            New-Item -ItemType Directory -Force -Path build
+            Copy-Item -Path dist,electron,package.json,public -Destination build -Recurse
+          else
+            rm -rf build
+            mkdir -p build
+            cp -r dist electron package.json public build/
+          fi
+
+      - name: Build installers
+        working-directory: ${{ github.workspace }}/build
+        run: |
+          # Show build directory contents
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            echo "Build directory contents:"
             dir
           else
-            echo "Current directory:"
-            pwd
-            echo "Directory contents:"
+            echo "Build directory contents:"
             ls -la
           fi
           # Run the build command
