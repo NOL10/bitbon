@@ -58,8 +58,8 @@
       "artifactName": "${productName}-Setup-${version}.${ext}",
       "icon": "public/icon.ico",
       "requestedExecutionLevel": "asInvoker",
-      "signingHashAlgorithms": null,
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
     },
     "linux": {
       "target": ["AppImage", "deb"],
