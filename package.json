@@ -24,12 +24,7 @@
     "generate-icons": "node scripts/generate-icons.js"
   },
   "build": {
-    "publish": null,
-    "linux": {
-      "snap": {
-        "publish": null
-      }
-    }
+    "publish": null
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
