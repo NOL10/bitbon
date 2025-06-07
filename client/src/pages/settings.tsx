@@ -413,6 +413,12 @@ export default function Settings() {
 )}
 
                   {/* Back Button */}
+                  <button
+                    className="w-full mt-6 py-3 px-4 border border-[#22ff33] bg-[#051405] text-[#22ff33] font-['VT323'] text-lg hover:bg-[#22ff33]/10 transition-colors"
+                    onClick={() => setShowAdvanced(false)}
+                  >
+                    BACK
+                  </button>
                 </div>
               )}
               
