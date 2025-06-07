@@ -1,6 +1,14 @@
 # Bitcoin Bonsai Widget
 
+[![Build Status](https://github.com/NOL10/bitbon/actions/workflows/electron-builder.yml/badge.svg)](https://github.com/NOL10/bitbon/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 A cross-platform, draggable desktop widget and web app for tracking Bitcoin price and more. Built with React, Electron, and Vite.
+
+---
+
+## 🖼️ Screenshot
+![Widget Screenshot](public/screenshot.png)
 
 ---
 
