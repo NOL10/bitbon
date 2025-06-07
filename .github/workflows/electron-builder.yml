@@ -43,4 +43,4 @@ jobs:
             dist/*.rpm
             dist/*mac*
 
-# Optional: To automatically create a GitHub Release with installers, see electron-builder docs or ask for a release workflow.
+# This workflow only uploads build artifacts and does NOT publish to GitHub Releases or Snap Store.

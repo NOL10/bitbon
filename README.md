@@ -1,51 +1,66 @@
 # Bitcoin Bonsai Widget
 
-A beautiful, always-on-top, cross-platform desktop widget that visualizes Bitcoin price growth as a bonsai tree. Built with React, Electron, and TypeScript.
-
-![screenshot](./public/screenshot.png)
-
-## ✨ Features
-- Live Bitcoin price tracking (via CoinGecko)
-- Bonsai tree visualization that grows/shrinks with price changes
-- Always-on-top, frameless, transparent desktop widget
-- Click-through mode (soon)
-- Local settings and logs (no backend required)
-- Cross-platform: macOS, Windows, Linux
-- Easy install: just download and run
-
-## 🚀 Installation
-
-### Download
-- [Releases](https://github.com/NOL10/bitcoin-bonsai-widget/releases)
-  - **macOS:** `.dmg`
-  - **Windows:** `.exe`
-  - **Linux:** `.AppImage` or `.deb`
-
-### Build from Source
-```bash
-git clone https://github.com/yourusername/bitcoin-bonsai-widget.git
-cd bitcoin-bonsai-widget
-npm install
-npm run generate-icons
-cd client && npm run build && cd ..
-npm run electron:build
-```
-Installers will be in the `release` folder.
-
-## 🖼️ Screenshots
-Add screenshots to `public/screenshot.png` and update this README.
-
-## 🛠️ Development
-```bash
-npm run electron:dev
-```
-
-## 🤝 Contributing
-Pull requests are welcome! For major changes, open an issue first to discuss what you'd like to change.
-
-## 📄 License
-MIT. See [LICENSE](./LICENSE).
+A cross-platform, draggable desktop widget and web app for tracking Bitcoin price and more. Built with React, Electron, and Vite.
 
 ---
 
-**Made with ❤️ by Mr_Meadow & Noel George* 
+## ✨ Features
+- **Draggable desktop widget** (Electron, frameless, resizable)
+- **Web app** mode (pure React)
+- **Cross-platform builds** (macOS, Windows, Linux via GitHub Actions)
+- **Advanced settings** (including a "Close App" button in Electron)
+- Modern UI with retro CRT effects
+
+---
+
+## 🚀 Getting Started
+
+### 1. **Web App (Development)**
+```sh
+npm install
+npm run dev
+```
+Visit [http://localhost:5173](http://localhost:5173)
+
+### 2. **Desktop Widget (Electron, Development)**
+```sh
+npm run build
+npm run electron:dev
+```
+
+### 3. **Build Installers (macOS, Windows, Linux)**
+#### Locally (for your OS):
+```sh
+npm run electron:dist
+```
+Installers will appear in the `dist/` folder.
+
+#### Cross-Platform (All OSes):
+- Push to [GitHub](https://github.com/NOL10/bitbon)
+- Go to the **Actions** tab → select the latest run → download installers from "Artifacts"
+
+---
+
+## 📦 Downloading Installers
+- **macOS:** `.dmg`, `.zip`
+- **Windows:** `.exe`, `.msi`
+- **Linux:** `.AppImage`, `.deb`, `.snap`
+- Download from [GitHub Actions Artifacts](https://github.com/NOL10/bitbon/actions) after each push.
+
+---
+
+## 🤝 Contributing
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for details!
+- Open issues for bugs/ideas
+- Fork and submit pull requests
+- Follow code style and commit conventions
+
+---
+
+## 📄 License
+MIT
+
+---
+
+## 👋 Contact
+For questions, suggestions, or collaborations, open an issue on GitHub or contact [@NOL10](https://github.com/NOL10).
