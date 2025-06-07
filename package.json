@@ -23,6 +23,14 @@
     "electron:dist": "npm run build && electron-builder",
     "generate-icons": "node scripts/generate-icons.js"
   },
+  "build": {
+    "publish": null,
+    "linux": {
+      "snap": {
+        "publish": null
+      }
+    }
+  },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.4",
