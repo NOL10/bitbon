@@ -81,7 +81,7 @@ export function calculateGrowthStage(
   if (isNearATL) {
     return "atl";
   }
-
+  
   // If not near ATH/ATL, use the regular threshold logic
   if (percentChange > 0) {
     if (percentChange >= positiveThresholds[2]) return "positive-30";

@@ -1,3 +1,12 @@
+// TypeScript declaration for window.electron (Electron preload)
+declare global {
+  interface Window {
+    electron?: {
+      closeApp: () => void;
+    };
+  }
+}
+
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -382,31 +391,28 @@ export default function Settings() {
                   
                   {/* GitHub Repository Link */}
                   <div className="flex-1 flex flex-col items-center justify-center">
-                    <a 
-                      href="https://github.com/NOL10/bitbon" 
-                      target="_blank" 
+                    <a
+                      href="https://github.com/NOL10/bitbon"
+                      target="_blank"
                       rel="noopener noreferrer"
+                      
                       className="text-[22px] font-['VT323'] text-[#22ff33] text-center mb-4 hover:text-[#22ff33]/80 transition-colors"
                     >
                       GitHub Repository
                     </a>
                   </div>
 
-                  {/* Close App Button */}
-                  <button 
-                    onClick={() => window.electron?.closeApp?.()}
-                    className="w-full py-3 px-4 border border-[#ff3333] bg-[#051405] text-[#ff3333] font-['VT323'] text-lg hover:bg-[#ff3333]/10 transition-colors mb-4"
-                  >
-                    CLOSE APP
-                  </button>
+                  {/* Close App Button for Electron */}
+{typeof window !== 'undefined' && (window as any).electron?.closeApp && (
+  <button
+    className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-lg font-['VT323']"
+    onClick={() => (window as any).electron.closeApp()}
+  >
+    Close App
+  </button>
+)}
 
                   {/* Back Button */}
-                  <button 
-                    className="w-full py-3 px-4 border border-[#22ff33] bg-[#051405] text-[#22ff33] font-['VT323'] text-lg hover:bg-[#22ff33]/10 transition-colors"
-                    onClick={() => setShowAdvanced(false)}
-                  >
-                    BACK
-                  </button>
                 </div>
               )}
               
@@ -482,7 +488,7 @@ export default function Settings() {
               {showPercentageChange && (
                 <div className="absolute top-0 left-0 w-full h-full bg-[#051405] border-2 border-[#22ff33] p-4 z-20 overflow-y-auto flex flex-col">
                   <h2 className="text-[24px] font-['VT323'] mb-6 text-center">SET PERCENTAGE CHANGE</h2>
-                  
+
                   {/* Positive Thresholds */}
                   <div className="mb-6">
                     <h3 className="text-[18px] font-['VT323'] mb-2">POSITIVE THRESHOLDS (%)</h3>

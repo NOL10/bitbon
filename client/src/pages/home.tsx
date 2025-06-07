@@ -206,8 +206,8 @@ export default function Home() {
   const priceGlowClass = isWithinATHGlowPeriod()
     ? "gold-glow text-[#ffd700] animate-pulse"
     : isNearThreshold(btcData.currentPrice ?? 0, PRICE_THRESHOLDS, 1)
-      ? "gold-glow text-[#ffd700]"
-      : "green-glow text-[#22ff33]";
+    ? "gold-glow text-[#ffd700]"
+    : "green-glow text-[#22ff33]";
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center p-0 m-0 bg-black">

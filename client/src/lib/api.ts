@@ -1,28 +1,9 @@
-// Add this at the top of the file for TypeScript
-declare global {
-  interface Window {
-    electron?: {
-      getBtcPrice?: () => Promise<BtcPriceResponse>;
-      toggleClickThrough?: () => void;
-      saveWindowPosition?: (x: number, y: number) => void;
-      platform?: string;
-      isClickThrough?: () => Promise<boolean>;
-      quit?: () => void;
-      closeApp?: () => void;
-    };
-  }
-}
 
 import { BtcPriceResponse, BonsaiSettings, BonsaiLog, SaveSettingsParams, AddLogParams, HistoricalPriceData } from "./types";
 
 // Fetch BTC price from CoinGecko API
 export async function fetchBtcPrice(): Promise<BtcPriceResponse> {
-  if (typeof window !== 'undefined' && window.electron && window.electron.getBtcPrice) {
-    const result = await window.electron.getBtcPrice();
-    console.log('BTC price from main process:', result);
-    return result;
-  }
-  // fallback for web
+  // Only use web fetch
   const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd");
   if (!response.ok) {
     throw new Error("Failed to fetch BTC price");

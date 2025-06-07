@@ -40,7 +40,7 @@ async function generateIcons() {
     sizes.map(size =>
       sharp(Buffer.from(svg))
         .resize(size, size)
-        .png()
+    .png()
         .toBuffer()
     )
   );
