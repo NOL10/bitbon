@@ -211,33 +211,36 @@ export default function Home() {
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center p-0 m-0 bg-black">
-      {/* Scanlines effect */}
-      <div className="fixed inset-0 pointer-events-none z-10 opacity-10">
-        <div className="w-full h-full bg-scanlines"></div>
+      {/* Fixed background elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        {/* Grid background */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
+        {/* Scanlines effect */}
+        <div className="absolute inset-0 bg-scanlines opacity-10"></div>
       </div>
       
       {/* Main widget */}
-      <div className="relative w-[340px] h-[590px] border-4 border-[#22ff33] bg-[#051405] text-[#22ff33] overflow-y-auto shadow-xl rounded-lg flex flex-col">
+      <div className="relative w-[340px] min-h-[590px] border-4 border-[#22ff33] bg-[#051405] text-[#22ff33] shadow-xl rounded-lg flex flex-col z-20">
         {/* Widget border effect - double border as seen in the mockup */}
         <div className="absolute inset-0 border-2 border-[#22ff33]/40 m-2 pointer-events-none rounded-lg"></div>
-        {/* Content with subtle grid effect */}
-        <div className="grid-lines flex-1 w-full p-5 flex flex-col border-b-0">
+        {/* Content area */}
+        <div className="w-full p-3 flex-1 flex flex-col border-b-0 overflow-hidden" style={{ minHeight: 0 }}>
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full">
               <p className="text-[#22ff33] animate-pulse font-['VT323'] text-xl">LOADING DATA...</p>
             </div>
           ) : (
-            <div className="flex flex-col flex-1 min-h-[320px] justify-start items-center">
+            <div className="flex flex-col flex-1 justify-start items-center">
               {/* Header with percentage */}
-              <h1 className="text-[30px] font-['VT323'] mb-5 tracking-[0.2em] text-[#22ff33] text-shadow-glow uppercase">Bonsai</h1>
+              <h1 className="text-[26px] font-['VT323'] mb-3 tracking-[0.2em] text-[#22ff33] text-shadow-glow uppercase">Bonsai</h1>
               {/* Main bonsai visualization */}
-              <div className="mb-6 flex-1 flex items-center justify-center">
+              <div className="mb-2 flex-1 flex items-center justify-center w-full" style={{ minHeight: '160px' }}>
                 <BonsaiTree growthState={growthState} percentChange={percentChange} />
               </div>
               {/* Show current rise of BTC relative to average buy price */}
-              <div className={`text-[22px] font-['VT323'] w-full text-center mb-2 tracking-wider ${percentChange >= 0 ? 'text-[#22ff33]' : 'text-[#a82e2e]'}`}>{percentChange > 0 ? '+' : ''}{percentChange.toFixed(2)}%</div>
+              <div className={`text-[20px] font-['VT323'] w-full text-center mb-1 tracking-wider ${percentChange >= 0 ? 'text-[#22ff33]' : 'text-[#a82e2e]'}`}>{percentChange > 0 ? '+' : ''}{percentChange.toFixed(2)}%</div>
               {/* Show current growth frequency */}
-              <div className="text-[16px] font-['VT323'] w-full text-center mb-1 tracking-widest text-white/80 uppercase">
+              <div className="text-[14px] font-['VT323'] w-full text-center mb-1 tracking-widest text-white/80 uppercase">
                 {settings?.growthFrequency || 'day'}
               </div>
               {/* Prompt to water if avgBuyPrice is not set */}
@@ -245,16 +248,16 @@ export default function Home() {
                 <div className="text-[#ff3333] text-center text-lg font-['VT323'] mb-4 animate-pulse">WATER YOUR BONSAI TO BEGIN!</div>
               )}
               {/* Bitcoin price - with glowing effect at threshold values and ATH */}
-              <div className={`text-[24px] font-['VT323'] w-full text-center mb-6 tracking-wider ${priceGlowClass}`}>
+              <div className={`text-[22px] font-['VT323'] w-full text-center mb-3 tracking-wider ${priceGlowClass}`}>
                 BTC PRICE: {formatCurrency(btcData.currentPrice || 0)}$
                 {isWithinATHGlowPeriod() && (
                   <div className="text-[14px] text-[#ffd700] mt-1 animate-pulse">
-                    ALL TIME HIGH ACHIEVED!
+                    <span className="text-yellow-400">BTC PRICE: {formatCurrency(marketATH)}</span>
                   </div>
                 )}
               </div>
               {/* Settings button - styled to match action buttons */}
-              <div className="w-full border-4 border-[#22ff33] rounded-lg overflow-hidden bg-[#051405] relative shadow-lg h-[54px] mb-3 flex items-center justify-center">
+              <div className="w-full border-4 border-[#22ff33] rounded-lg overflow-hidden bg-[#051405] relative shadow-lg h-[50px] mb-2 flex items-center justify-center">
                 <Link href="/settings" className="w-full h-full">
                   <button className="w-full h-full flex flex-row items-center justify-center bg-[#051405] text-[#22ff33] font-['VT323'] text-lg font-bold transition-all duration-200 hover:scale-105 hover:shadow-[0_0_8px_#22ff33] focus:outline-none rounded-none">
                     <span className="mr-2">⚙</span>
@@ -268,7 +271,7 @@ export default function Home() {
           )}
         </div>
         {/* Action buttons - stick to bottom */}
-        <div className="flex w-full border-4 border-[#22ff33] rounded-b-lg overflow-hidden bg-[#051405] relative shadow-lg h-[54px] mt-auto">
+        <div className="flex-shrink-0 flex w-full border-4 border-[#22ff33] rounded-b-lg overflow-hidden bg-[#051405] relative shadow-lg h-[50px]">
           {/* Scanline/gradient overlay */}
           <div className="absolute inset-0 pointer-events-none opacity-10 bg-scanlines z-0" />
                   <button 
